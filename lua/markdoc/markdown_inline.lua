@@ -1,5 +1,8 @@
 local inline = {};
 
+inline.links = {};
+inline.images = {};
+
 ---@param TSNode? TSNode
 local function clear_node (buffer, TSNode)
 	if not TSNode then
@@ -16,20 +19,10 @@ end
 inline.bold = function (buffer, _, TSNode)
 	---|fS
 
-	local range = { TSNode:range() };
-	local text = vim.treesitter.get_node_text(TSNode, buffer, {});
-
-	text = text:gsub("^%*+", ""):gsub("%*+$", "");
-
-	vim.api.nvim_buf_set_text(
-		buffer,
-		range[1],
-		range[2],
-		range[3],
-		range[4],
-
-		{ text }
-	);
+	clear_node(buffer, TSNode:named_child(3));
+	clear_node(buffer, TSNode:named_child(2));
+	clear_node(buffer, TSNode:named_child(1));
+	clear_node(buffer, TSNode:named_child(0));
 
 	---|fE
 end
@@ -39,20 +32,8 @@ end
 inline.italic = function (buffer, _, TSNode)
 	---|fS
 
-	local range = { TSNode:range() };
-	local text = vim.treesitter.get_node_text(TSNode, buffer, {});
-
-	text = text:gsub("^%*", ""):gsub("%*$", "");
-
-	vim.api.nvim_buf_set_text(
-		buffer,
-		range[1],
-		range[2],
-		range[3],
-		range[4],
-
-		{ text }
-	);
+	clear_node(buffer, TSNode:named_child(1));
+	clear_node(buffer, TSNode:named_child(0));
 
 	---|fE
 end
@@ -62,18 +43,25 @@ end
 inline.inline_link = function (buffer, _, TSNode)
 	---|fS
 
-	local text = TSNode:named_child(0);
 	local dest = TSNode:named_child(1);
-
-	if not text or not dest then
-		return;
-	end
+	table.insert(inline.links, dest);
 
 	clear_node(buffer, TSNode:child(5));
 	clear_node(buffer, dest)
 	clear_node(buffer, TSNode:child(3));
 
 	clear_node(buffer, TSNode:child(2));
+
+	if dest then
+		local _last = TSNode:child(2);
+
+		if _last then
+			local R = { _last:range() };
+
+			vim.api.nvim_buf_set_text(buffer, R[1], R[2], R[1], R[2], { "^" .. tostring(#inline.links) });
+		end
+	end
+
 	clear_node(buffer, TSNode:child(0));
 
 	---|fE
@@ -103,15 +91,16 @@ inline.shortcut_link = function (buffer, _, TSNode)
 end
 
 inline.rule_map = {
-	{ "bold", "(strong_emphasis) @bold", inline.bold },
-	{ "bold", "(emphasis) @italic", inline.bold },
-	{ "bold", "(inline_link  (link_text)  (link_destination)) @link", inline.inline_link },
-	{ "bold", "(full_reference_link  (link_text)  (link_label)) @link", inline.full_reference_link },
-	{ "bold", "(shortcut_link) @link", inline.shortcut_link },
+	{ "(strong_emphasis) @bold", inline.bold },
+	{ "(emphasis) @italic", inline.bold },
+
+	{ "(inline_link  (link_text)  (link_destination)) @link", inline.inline_link },
+	{ "(full_reference_link  (link_text)  (link_label)) @link", inline.full_reference_link },
+	{ "(shortcut_link) @link", inline.shortcut_link },
 };
 
 inline.transform = function (TSTree, buffer, rule)
-	local query = vim.treesitter.query.parse("markdown_inline", rule[2]);
+	local query = vim.treesitter.query.parse("markdown_inline", rule[1]);
 	local stack = {};
 
 	for capture_id, capture_node, _, _ in query:iter_captures(TSTree:root(), buffer) do
@@ -120,11 +109,14 @@ inline.transform = function (TSTree, buffer, rule)
 	end
 
 	for _, item in ipairs(stack) do
-		pcall(rule[3], buffer, item[1], item[2]);
+		pcall(rule[2], buffer, item[1], item[2]);
 	end
 end
 
 inline.walk = function (buffer)
+	inline.links = {};
+	inline.images = {};
+
 	for _, rule in ipairs(inline.rule_map) do
 		local root_parser = vim.treesitter.get_parser(buffer);
 
@@ -143,9 +135,7 @@ inline.walk = function (buffer)
 		end);
 	end
 
-	vim.print(
-		vim.api.nvim_buf_get_lines(buffer, 0, -1, false)
-	)
+	return inline.links, inline.images;
 end
 
 return inline;
