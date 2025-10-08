@@ -20,6 +20,7 @@ markdoc.init = function ()
 	);
 
 	require("markdoc.markdown_inline").walk(new);
+	require("markdoc.markdown").walk(new);
 end
 
 markdoc.setup = function ()
