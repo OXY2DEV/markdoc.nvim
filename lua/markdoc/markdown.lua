@@ -164,11 +164,54 @@ markdown.block_quote = function (buffer, _, TSNode)
 	---|fE
 end
 
+markdown.format_buffer = vim.api.nvim_create_buf(false, true);
+
+markdown.formatter = function (buffer, _, TSNode)
+	if not markdown.format_buffer or not vim.api.nvim_buf_is_valid(markdown.format_buffer) then
+		markdown.format_buffer = vim.api.nvim_create_buf(false, true);
+	end
+
+	local lines = vim.fn.split(
+		vim.treesitter.get_node_text(TSNode, buffer, {}),
+		"\n"
+	);
+
+	vim.api.nvim_buf_set_lines(markdown.format_buffer, 0, -1, false, lines);
+
+	vim.api.nvim_buf_call(markdown.format_buffer, function ()
+		vim.bo[markdown.format_buffer].filetype = "markdown";
+		vim.bo[markdown.format_buffer].textwidth = config.active.textwidth;
+
+		vim.cmd("normal! gggqG");
+	end);
+
+	local R = { TSNode:range() };
+	local formatted = vim.api.nvim_buf_get_lines(markdown.format_buffer, 0, -1, false);
+
+	if vim.list_contains({ "paragraph", "block_quote" }, TSNode:type()) and R[4] == 0 then
+		R[3] = R[3] - 1;
+		R[4] = -1;
+	end
+
+	vim.api.nvim_buf_set_text(
+		buffer,
+
+		R[1],
+		R[2],
+		R[3],
+		R[4],
+
+		formatted
+	);
+end
+
 
 markdown.pre_rule = {
 	{ "(atx_heading) @atx", markdown.atx_heading }
 };
 markdown.post_rule = {
+	{ "[ (paragraph) (block_quote) (list) ] @format", markdown.formatter },
+
 	{ "(block_quote) @block", markdown.block_quote }
 };
 
@@ -207,11 +250,6 @@ markdown.walk = function (buffer)
 			end
 		end);
 	end
-
-	vim.api.nvim_buf_call(buffer, function ()
-		vim.bo[buffer].textwidth = config.active.textwidth;
-		-- vim.cmd("normal! gggqG");
-	end);
 
 	for _, rule in ipairs(markdown.post_rule) do
 		local root_parser = vim.treesitter.get_parser(buffer);
