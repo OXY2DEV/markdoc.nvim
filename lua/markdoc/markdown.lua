@@ -106,6 +106,8 @@ end
 ---@param buffer integer
 ---@param TSNode TSNode
 markdown.block_quote = function (buffer, _, TSNode)
+	---|fS
+
 	local text = vim.treesitter.get_node_text(TSNode, buffer, {});
 	local range = { TSNode:range() };
 
@@ -120,20 +122,46 @@ markdown.block_quote = function (buffer, _, TSNode)
 	end
 
 	local callout_config = config.block_quote(lines[1]);
+	local title = string.match(lines[1], "^[%>%s]*%[[^%]]+%]%s*(%S.+)$")
 
 	for l, line in ipairs(lines) do
-		lines[l] = vim.fn.substitute(line, "^>\\s*", callout_config.border or "", "g");
-		vim.api.nvim_buf_set_text(
-			buffer,
+		if l == 1 and title and callout_config.icon then
+			vim.api.nvim_buf_set_text(
+				buffer,
 
-			range[1] + (l - 1),
-			range[2],
-			range[1] + (l - 1),
-			-1,
+				range[1] + (l - 1),
+				range[2],
+				range[1] + (l - 1),
+				-1,
 
-			{ vim.fn.substitute(line, "^>", callout_config.border or "", "g") }
-		)
+				{ callout_config.border .. callout_config.icon .. title }
+			);
+		elseif l == 1 and callout_config.preview then
+			vim.api.nvim_buf_set_text(
+				buffer,
+
+				range[1] + (l - 1),
+				range[2],
+				range[1] + (l - 1),
+				-1,
+
+				{ callout_config.border .. callout_config.preview }
+			);
+		else
+			vim.api.nvim_buf_set_text(
+				buffer,
+
+				range[1] + (l - 1),
+				range[2],
+				range[1] + (l - 1),
+				-1,
+
+				{ vim.fn.substitute(line, "^>", callout_config.border or "", "g") }
+			);
+		end
 	end
+
+	---|fE
 end
 
 

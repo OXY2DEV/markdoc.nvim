@@ -24,10 +24,15 @@ config.default = {
 			border = "|"
 		},
 		NOTE = {
-			border = "A"
+			border = "A",
+			icon = "# ",
+			preview = "$ Note"
 		},
 	},
-	list_items = {}
+	list_items = {
+		indent_size = 4,
+		shift_width = 4
+	}
 };
 
 config.active = vim.deepcopy(config.default, true);
