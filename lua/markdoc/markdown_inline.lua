@@ -5,13 +5,17 @@ inline.images = {};
 
 ---@param TSNode? TSNode
 local function clear_node (buffer, TSNode)
+	---|fS
+
 	if not TSNode then
 		return;
 	end
 
 	local R = { TSNode:range() };
 
-	vim.api.nvim_buf_set_text(buffer, R[1], R[2], R[3], R[4], {})
+	vim.api.nvim_buf_set_text(buffer, R[1], R[2], R[3], R[4], {});
+
+	---|fE
 end
 
 ---@param buffer integer
