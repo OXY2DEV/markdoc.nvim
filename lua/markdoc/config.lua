@@ -19,11 +19,37 @@ config.default = {
 	tags = {
 		default = { "a", "b", "c" }
 	},
-	block_quotes = {},
+	block_quotes = {
+		default = {
+			border = "|"
+		},
+		NOTE = {
+			border = "A"
+		},
+	},
 	list_items = {}
 };
 
 config.active = vim.deepcopy(config.default, true);
+
+config.block_quote = function (leader)
+	local callout = string.match(leader, "^%>%s*%[!([^%]]+)%]");
+
+	if not callout then
+		return config.eval(config.active.block_quotes.default, leader), false;
+	end
+
+	local keys = vim.tbl_keys(config.active.block_quotes or {});
+
+	for _, key in ipairs(keys) do
+		if string.match(callout, key) then
+			vim.print(callout)
+			return config.eval(config.active.block_quotes[key], callout), true;
+		end
+	end
+
+	return config.eval(config.active.block_quotes.default, leader), false;
+end
 
 config.get_tags = function (text)
 	if not config.active.tags then

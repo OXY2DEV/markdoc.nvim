@@ -88,6 +88,13 @@ end
 inline.shortcut_link = function (buffer, _, TSNode)
 	---|fS
 
+	local range = { TSNode:range() };
+	local before = vim.api.nvim_buf_get_text(buffer, range[1], 0, range[1], range[2], {})[1] or "";
+
+	if string.match(before, "%>%s*$") and string.match(before, "^[%s%>]+$") then
+		return;
+	end
+
 	clear_node(buffer, TSNode:child(2));
 	clear_node(buffer, TSNode:child(0));
 
