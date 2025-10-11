@@ -1,4 +1,6 @@
 local markdown = {};
+
+local format = require("markdoc.format");
 local config = require("markdoc.config");
 local utils = require("markdoc.utils");
 
@@ -16,6 +18,31 @@ local function clear_node (buffer, TSNode)
 
 	---|fE
 end
+
+
+markdown.buf_get_block = function (buffer, start_row, start_col, end_row)
+	local output = {};
+
+	local _lines = vim.api.nvim_buf_get_lines(buffer, start_row, end_row, false);
+
+	for l, line in ipairs(_lines) do
+		_lines[l] = string.sub(line, start_col);
+	end
+
+	return output;
+end
+
+markdown.buf_set_block = function (buffer, start_row, start_col, _, lines)
+	local output = {};
+
+	for l, line in ipairs(lines) do
+		lines[l] = string.sub(line, start_col);
+		vim.api.nvim_buf_set_text(buffer, start_row + (l - 1), start_col, start_row + (l - 1), -1, { line });
+	end
+
+	return output;
+end
+
 
 ---@param buffer integer
 ---@param TSNode TSNode
@@ -164,11 +191,14 @@ markdown.block_quote = function (buffer, _, TSNode)
 	---|fE
 end
 
-markdown.format_buffer = vim.api.nvim_create_buf(false, true);
-
+---@param buffer integer
+---@param TSNode TSNode
 markdown.formatter = function (buffer, _, TSNode)
-	if not markdown.format_buffer or not vim.api.nvim_buf_is_valid(markdown.format_buffer) then
-		markdown.format_buffer = vim.api.nvim_create_buf(false, true);
+	---|fS
+
+	if not TSNode:parent() or not TSNode:parent():parent() or TSNode:parent():parent():type() ~= "document" then
+		-- NOTE: Only apply formatting to nodes that are top-level.
+		return;
 	end
 
 	local lines = vim.fn.split(
@@ -176,33 +206,63 @@ markdown.formatter = function (buffer, _, TSNode)
 		"\n"
 	);
 
-	vim.api.nvim_buf_set_lines(markdown.format_buffer, 0, -1, false, lines);
-
-	vim.api.nvim_buf_call(markdown.format_buffer, function ()
-		vim.bo[markdown.format_buffer].filetype = "markdown";
-		vim.bo[markdown.format_buffer].textwidth = config.active.textwidth;
-
-		vim.cmd("normal! gggqG");
-	end);
-
 	local R = { TSNode:range() };
-	local formatted = vim.api.nvim_buf_get_lines(markdown.format_buffer, 0, -1, false);
+	local formatted = {};
+
+	--[[ Gets `leader` used for text-wrapping. ]]
+	---@param line string
+	---@return string?
+	local function get_leader (line)
+		if string.match(line, "^[%>%s]*[%-%+%*]%s") then
+			local _m = string.match(line, "^[%>%s]*[%-%+%*]%s");
+			_m = string.gsub(_m, "[%-%+%*]", " ");
+			return _m;
+		elseif string.match(line, "^[%>%s]*[%-%+%*]%s") then
+			local _m = string.match(line, "^[%>%s]*%d+[%.%)]%s");
+			_m = string.gsub(_m, "[%d+%.%)]", " ");
+			return _m;
+		elseif string.match(line, "^[%>%s]") then
+			return string.match(line, "^[%>%s]");
+		end
+	end
+
+	for _, line in ipairs(lines) do
+		formatted = vim.list_extend(formatted, format.format(line, nil, get_leader(line)));
+	end
 
 	if vim.list_contains({ "paragraph", "block_quote" }, TSNode:type()) and R[4] == 0 then
 		R[3] = R[3] - 1;
 		R[4] = -1;
 	end
 
-	vim.api.nvim_buf_set_text(
-		buffer,
+	local max_lines = vim.api.nvim_buf_line_count(buffer);
 
-		R[1],
-		R[2],
-		R[3],
-		R[4],
+	if R[3] > (max_lines - 1) then
+		R[3] = max_lines - 1;
+		R[4] = 0;
+	end
 
-		formatted
+	vim.api.nvim_buf_set_text(buffer, R[1], R[2], R[3], R[4], formatted);
+
+	---|fE
+end
+
+---@param buffer integer
+---@param TSNode TSNode
+markdown.fenced_code_block = function (buffer, _, TSNode)
+	local lines = vim.fn.split(
+		vim.treesitter.get_node_text(TSNode, buffer, {}),
+		"\n"
 	);
+
+	local is_info_string = TSNode:named_child(1);
+	local lang;
+
+	if is_info_string and is_info_string:type() == "info_string" and is_info_string:named_child(0) then
+		lang = vim.treesitter.get_node_text(is_info_string:named_child(0) --[[ @as TSNode ]], buffer, {});
+	end
+
+	lines[1] = string.format(">%s", lang);
 end
 
 
@@ -212,7 +272,8 @@ markdown.pre_rule = {
 markdown.post_rule = {
 	{ "[ (paragraph) (block_quote) (list) ] @format", markdown.formatter },
 
-	{ "(block_quote) @block", markdown.block_quote }
+	{ "(block_quote) @block", markdown.block_quote },
+	{ "(fenced_code_block) @code_block", markdown.fenced_code_block },
 };
 
 
