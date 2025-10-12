@@ -40,6 +40,7 @@ config.default = {
 config.active = vim.deepcopy(config.default, true);
 
 config.block_quote = function (leader)
+	leader = leader or "";
 	local callout = string.match(leader, "^%>%s*%[!([^%]]+)%]");
 
 	if not callout then

@@ -2,10 +2,35 @@ local markdown = {};
 
 local format = require("markdoc.format");
 local config = require("markdoc.config");
-local utils = require("markdoc.utils");
 
 ---@type integer[]
 markdown.ignore_lines = {};
+
+---@param buffer integer
+---@param TSNode TSNode
+local function range (buffer, TSNode)
+	local lines = vim.fn.split(
+		vim.treesitter.get_node_text(TSNode, buffer, {}),
+		"\n"
+	);
+	local line_count = vim.api.nvim_buf_line_count(buffer);
+
+	local R = { TSNode:range() };
+
+	if string.match(lines[1] or "", "^%s+") then
+		R[2] = R[2] + #string.match(lines[1] or "", "^%s+");
+	end
+
+	if R[3] >= line_count then
+		R[3] = line_count - 1;
+		R[4] = -1;
+	elseif R[4] == 0 then
+		R[3] = R[3] - 1;
+		R[4] = -1;
+	end
+
+	return R, { TSNode:range() };
+end
 
 ---@class markdoc.col
 ---
@@ -76,7 +101,7 @@ markdown.atx_heading = function (buffer, _, TSNode)
 	local tag_w = math.floor(fraction * ratio[2]);
 
 	local _content = TSNode:field("heading_content")[1];
-	local R = { TSNode:range() };
+	local R = range(buffer, TSNode);
 
 	if not _content then
 		vim.api.nvim_buf_set_text(buffer, R[1], R[2], R[3], R[4], {});
@@ -113,13 +138,68 @@ markdown.atx_heading = function (buffer, _, TSNode)
 		end
 		heading = vim.list_extend(heading, merge_cols({ width = text_w, alignment = "left", lines = content }, { width = tag_w, alignment = "right", lines = tags }))
 	else
-		heading = vim.list_extend(heading, merge_cols({ width = text_w, alignment = "left", lines = content }, { width = tag_w, alignment = "right", lines = tags }));
-		for l, line in ipairs(heading) do
-			heading[l] = line .. " ~";
-		end
+		return;
 	end
 
-	vim.api.nvim_buf_set_text(buffer, R[1], R[2], R[3] - 1, -1, heading);
+	vim.api.nvim_buf_set_text(buffer, R[1], R[2], R[3], R[4], heading);
+
+	---|fE
+end
+
+---@param buffer integer
+---@param TSNode TSNode
+markdown.atx_h3 = function (buffer, _, TSNode)
+	---|fS
+
+	local _marker = TSNode:named_child(0) --[[ @as TSNode ]];
+	local marker = vim.treesitter.get_node_text(_marker, buffer, {});
+
+	if #marker < 3 then
+		return;
+	end
+
+	local heading = {};
+
+	local MAX = config.active.textwidth or (vim.bo[buffer].textwidth > 0 and vim.bo[buffer].textwidth or 80);
+
+	local ratio = config.active.heading_ratio;
+
+	local fraction = MAX / (ratio[1] + ratio[2]);
+	local text_w = math.floor(fraction * ratio[1]);
+	local tag_w = math.floor(fraction * ratio[2]);
+
+	local _content = TSNode:field("heading_content")[1];
+	local R = range(buffer, TSNode);
+
+	if not _content then
+		vim.api.nvim_buf_set_text(buffer, R[1], R[2], R[3], R[4], {});
+		return;
+	end
+
+	local text = vim.treesitter.get_node_text(_content, buffer, {});
+
+	local __tags = config.get_tags(text);
+	local _tags = {};
+
+	for _, tag in ipairs(__tags) do
+		table.insert(_tags, "*" .. string.gsub(tag, "%*", "") .. "*")
+	end
+
+	local content = format.format(
+		text:gsub("[\n\r]", ""),
+		text_w
+	);
+	local tags = format.format(
+		table.concat(_tags, " "),
+		tag_w
+	);
+
+	heading = vim.list_extend(heading, merge_cols({ width = text_w, alignment = "left", lines = content }, { width = tag_w, alignment = "right", lines = tags }));
+	for l, line in ipairs(heading) do
+		heading[l] = line .. " ~";
+	end
+
+	vim.api.nvim_buf_set_text(buffer, R[1], R[2], R[3], R[4], heading);
 
 	---|fE
 end
@@ -129,17 +209,15 @@ end
 markdown.block_quote = function (buffer, _, TSNode)
 	---|fS
 
-	local text = vim.treesitter.get_node_text(TSNode, buffer, {});
-	local range = { TSNode:range() };
+	local R = range(buffer, TSNode);
 
-	if string.match(text, "^%s+") then
-		range[2] = range[2] + #string.match(text, "^%s+");
-	end
-
-	local lines = vim.api.nvim_buf_get_lines(buffer, range[1], range[3], false);
+	local lines = vim.fn.split(
+		vim.treesitter.get_node_text(TSNode, buffer),
+		"\n"
+	);
 
 	for l, line in ipairs(lines) do
-		lines[l] = string.sub(line, range[2] + 1);
+		lines[l] = string.sub(line, R[2] + 1);
 	end
 
 	local callout_config = config.block_quote(lines[1]);
@@ -150,9 +228,9 @@ markdown.block_quote = function (buffer, _, TSNode)
 			vim.api.nvim_buf_set_text(
 				buffer,
 
-				range[1] + (l - 1),
-				range[2],
-				range[1] + (l - 1),
+				R[1] + (l - 1),
+				R[2],
+				R[1] + (l - 1),
 				-1,
 
 				{ callout_config.border .. callout_config.icon .. title }
@@ -161,9 +239,9 @@ markdown.block_quote = function (buffer, _, TSNode)
 			vim.api.nvim_buf_set_text(
 				buffer,
 
-				range[1] + (l - 1),
-				range[2],
-				range[1] + (l - 1),
+				R[1] + (l - 1),
+				R[2],
+				R[1] + (l - 1),
 				-1,
 
 				{ callout_config.border .. callout_config.preview }
@@ -172,9 +250,9 @@ markdown.block_quote = function (buffer, _, TSNode)
 			vim.api.nvim_buf_set_text(
 				buffer,
 
-				range[1] + (l - 1),
-				range[2],
-				range[1] + (l - 1),
+				R[1] + (l - 1),
+				R[2],
+				R[1] + (l - 1),
 				-1,
 
 				{ vim.fn.substitute(line, "^>", callout_config.border or "", "g") }
@@ -186,8 +264,8 @@ markdown.block_quote = function (buffer, _, TSNode)
 end
 
 ---@param TSNode TSNode
-markdown.ignore_format = function (_, _, TSNode)
-	local R = { TSNode:range() };
+markdown.ignore_format = function (buffer, _, TSNode)
+	local R = range(buffer, TSNode);
 
 	for l = R[1], R[3] - 1, 1 do
 		table.insert(markdown.ignore_lines, l);
@@ -209,7 +287,7 @@ markdown.formatter = function (buffer, _, TSNode)
 		"\n"
 	);
 
-	local R = { TSNode:range() };
+	local R = range(buffer, TSNode);
 	local formatted = {};
 
 	--[[ Gets `leader` used for text-wrapping. ]]
@@ -241,11 +319,6 @@ markdown.formatter = function (buffer, _, TSNode)
 		end
 	end
 
-	if vim.list_contains({ "list" }, TSNode:type()) and R[4] == 0 then
-		R[3] = R[3] - 1;
-		R[4] = -1;
-	end
-
 	vim.api.nvim_buf_set_text(buffer, R[1], R[2], R[3], R[4], {});
 	vim.api.nvim_buf_set_lines(buffer, R[1], R[1], false, formatted);
 
@@ -255,6 +328,8 @@ end
 ---@param buffer integer
 ---@param TSNode TSNode
 markdown.fenced_code_block = function (buffer, _, TSNode)
+	---|fS
+
 	local lines = vim.fn.split(
 		vim.treesitter.get_node_text(TSNode, buffer, {}),
 		"\n"
@@ -267,9 +342,50 @@ markdown.fenced_code_block = function (buffer, _, TSNode)
 		lang = vim.treesitter.get_node_text(is_info_string:named_child(0) --[[ @as TSNode ]], buffer, {});
 	end
 
-	lines[1] = string.format(">%s", lang);
+	lines[1] = string.format(">%s", lang or "");
+
+	if string.match(lines[#lines], "^```") then
+		lines[#lines] = "<";
+	else
+		table.insert(lines, "<");
+	end
+
+	for l = 2, #lines - 1, 1 do
+		lines[l] = "\t" .. lines[l];
+	end
+
+	local R = range(buffer, TSNode);
+
+	vim.api.nvim_buf_set_text(buffer, R[1], R[2], R[3], R[4], {});
+	vim.api.nvim_buf_set_lines(buffer, R[1], R[1], false, lines);
+
+	---|fE
 end
 
+---@param buffer integer
+---@param TSNode TSNode
+markdown.indented_code_block = function (buffer, _, TSNode)
+	---|fS
+
+	local lines = vim.fn.split(
+		vim.treesitter.get_node_text(TSNode, buffer, {}),
+		"\n"
+	);
+
+	table.insert(lines, 1, string.format(">%s", config.active.code_block_lang or ""));
+	table.insert(lines, "<");
+
+	-- for l = 2, #lines - 1 do
+	-- 	lines[l] = lines[l];
+	-- end
+
+	local R = range(buffer, TSNode);
+
+	vim.api.nvim_buf_set_text(buffer, R[1], R[2], R[3], R[4], {});
+	vim.api.nvim_buf_set_lines(buffer, R[1], R[1], false, lines);
+
+	---|fE
+end
 
 markdown.pre_rule = {
 	{ "(atx_heading) @atx", markdown.atx_heading }
@@ -278,7 +394,10 @@ markdown.post_rule = {
 	{ "[ (pipe_table) (fenced_code_block) (indented_code_block) ] @format", markdown.ignore_format },
 	{ "[ (paragraph) (block_quote) (list) ] @format", markdown.formatter },
 
+	{ "(atx_heading) @atx", markdown.atx_h3 },
+
 	{ "(block_quote) @block", markdown.block_quote },
+	{ "(indented_code_block) @code_block", markdown.indented_code_block },
 	{ "(fenced_code_block) @code_block", markdown.fenced_code_block },
 };
 
@@ -293,9 +412,9 @@ markdown.transform = function (TSTree, buffer, rule)
 	end
 
 	for _, item in ipairs(stack) do
-		-- vim.print(
+		vim.print(
 			pcall(rule[2], buffer, item[1], item[2])
-		-- )
+		)
 	end
 end
 
