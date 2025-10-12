@@ -80,7 +80,7 @@ format.format = function (line, width, leader)
 	for _, part in ipairs(parsed) do
 		if vim.fn.strdisplaywidth(output[#output] .. part.value) > width then
 			output[#output] = string.gsub(output[#output], "%s+$", "");
-			table.insert(output, part.kind ~= "space" and part.value or nil);
+			table.insert(output, part.kind ~= "space" and part.value or "");
 		else
 			output[#output] = output[#output] .. part.value;
 		end

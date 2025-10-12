@@ -4,6 +4,9 @@ local format = require("markdoc.format");
 local config = require("markdoc.config");
 local utils = require("markdoc.utils");
 
+---@type integer[]
+markdown.ignore_lines = {};
+
 ---@param TSNode? TSNode
 local function clear_node (buffer, TSNode)
 	---|fS
@@ -193,6 +196,16 @@ end
 
 ---@param buffer integer
 ---@param TSNode TSNode
+markdown.ignore_format = function (buffer, _, TSNode)
+	local R = { TSNode:range() };
+
+	for l = R[1], R[3] - 1, 1 do
+		table.insert(markdown.ignore_lines, l);
+	end
+end
+
+---@param buffer integer
+---@param TSNode TSNode
 markdown.formatter = function (buffer, _, TSNode)
 	---|fS
 
@@ -213,6 +226,8 @@ markdown.formatter = function (buffer, _, TSNode)
 	---@param line string
 	---@return string?
 	local function get_leader (line)
+		---|fS
+
 		if string.match(line, "^[%>%s]*[%-%+%*]%s") then
 			local _m = string.match(line, "^[%>%s]*[%-%+%*]%s");
 			_m = string.gsub(_m, "[%-%+%*]", " ");
@@ -221,28 +236,28 @@ markdown.formatter = function (buffer, _, TSNode)
 			local _m = string.match(line, "^[%>%s]*%d+[%.%)]%s");
 			_m = string.gsub(_m, "[%d+%.%)]", " ");
 			return _m;
-		elseif string.match(line, "^[%>%s]") then
-			return string.match(line, "^[%>%s]");
+		elseif string.match(line, "^[%>%s]+") then
+			return string.match(line, "^[%>%s]+");
+		end
+
+		---|fE
+	end
+
+	for l, line in ipairs(lines) do
+		if vim.list_contains(markdown.ignore_lines, R[1] + (l - 1)) then
+			formatted = vim.list_extend(formatted, { line });
+		else
+			formatted = vim.list_extend(formatted, format.format(line, nil, get_leader(line)));
 		end
 	end
 
-	for _, line in ipairs(lines) do
-		formatted = vim.list_extend(formatted, format.format(line, nil, get_leader(line)));
-	end
-
-	if vim.list_contains({ "paragraph", "block_quote" }, TSNode:type()) and R[4] == 0 then
+	if vim.list_contains({ "list" }, TSNode:type()) and R[4] == 0 then
 		R[3] = R[3] - 1;
 		R[4] = -1;
 	end
 
-	local max_lines = vim.api.nvim_buf_line_count(buffer);
-
-	if R[3] > (max_lines - 1) then
-		R[3] = max_lines - 1;
-		R[4] = 0;
-	end
-
-	vim.api.nvim_buf_set_text(buffer, R[1], R[2], R[3], R[4], formatted);
+	vim.api.nvim_buf_set_text(buffer, R[1], R[2], R[3], R[4], {});
+	vim.api.nvim_buf_set_lines(buffer, R[1], R[1], false, formatted);
 
 	---|fE
 end
@@ -270,6 +285,7 @@ markdown.pre_rule = {
 	{ "(atx_heading) @atx", markdown.atx_heading }
 };
 markdown.post_rule = {
+	{ "[ (pipe_table) (fenced_code_block) (indented_code_block) ] @format", markdown.ignore_format },
 	{ "[ (paragraph) (block_quote) (list) ] @format", markdown.formatter },
 
 	{ "(block_quote) @block", markdown.block_quote },
@@ -287,13 +303,15 @@ markdown.transform = function (TSTree, buffer, rule)
 	end
 
 	for _, item in ipairs(stack) do
-		vim.print(
+		-- vim.print(
 			pcall(rule[2], buffer, item[1], item[2])
-		)
+		-- )
 	end
 end
 
 markdown.walk = function (buffer)
+	markdown.ignore_lines = {};
+
 	for _, rule in ipairs(markdown.pre_rule) do
 		local root_parser = vim.treesitter.get_parser(buffer);
 
