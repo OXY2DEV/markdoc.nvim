@@ -16,6 +16,8 @@ config.default = {
 	textwidth = 80,
 	indent = 4,
 
+	heading_ratio = { 6, 4 },
+
 	tags = {
 		default = { "a", "b", "c" }
 	},

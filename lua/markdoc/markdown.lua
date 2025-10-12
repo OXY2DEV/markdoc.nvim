@@ -7,45 +7,56 @@ local utils = require("markdoc.utils");
 ---@type integer[]
 markdown.ignore_lines = {};
 
----@param TSNode? TSNode
-local function clear_node (buffer, TSNode)
+---@class markdoc.col
+---
+---@field width integer
+---@field alignment "left" | "right" | "center"
+---@field lines string[]
+
+---@param ... markdoc.col
+---@return string[]
+local function merge_cols (...)
 	---|fS
 
-	if not TSNode then
-		return;
+	local cols = { ... };
+	local lines = 1;
+
+	for _, col in ipairs(cols) do
+		lines = math.max(lines, #col.lines);
 	end
 
-	local R = { TSNode:range() };
+	local function align (text, width, alignment)
+		local W = vim.fn.strdisplaywidth(text);
 
-	vim.api.nvim_buf_set_text(buffer, R[1], R[2], R[3], R[4], {});
+		if alignment == "left" then
+			return text .. string.rep(" ", math.max(width - W, 0));
+		elseif alignment == "right" then
+			return string.rep(" ", math.max(width - W, 0)) .. text;
+		else
+			local B = math.ceil((width - W) / 2);
+			local A = math.floor((width - W) / 2);
+
+			return string.rep(" ", math.max(B, 0)) .. text .. string.rep(" ", math.max(A, 0));
+		end
+	end
+
+	local output = {};
+
+	for l = 1, lines do
+		local line = "";
+
+		for _, col in ipairs(cols) do
+			local row = col.lines[l] or "";
+			line = line .. align(row, col.width, col.alignment);
+		end
+
+		table.insert(output, line);
+	end
+
+	return output;
 
 	---|fE
 end
-
-
-markdown.buf_get_block = function (buffer, start_row, start_col, end_row)
-	local output = {};
-
-	local _lines = vim.api.nvim_buf_get_lines(buffer, start_row, end_row, false);
-
-	for l, line in ipairs(_lines) do
-		_lines[l] = string.sub(line, start_col);
-	end
-
-	return output;
-end
-
-markdown.buf_set_block = function (buffer, start_row, start_col, _, lines)
-	local output = {};
-
-	for l, line in ipairs(lines) do
-		lines[l] = string.sub(line, start_col);
-		vim.api.nvim_buf_set_text(buffer, start_row + (l - 1), start_col, start_row + (l - 1), -1, { line });
-	end
-
-	return output;
-end
-
 
 ---@param buffer integer
 ---@param TSNode TSNode
@@ -58,76 +69,56 @@ markdown.atx_heading = function (buffer, _, TSNode)
 
 	local MAX = config.active.textwidth or (vim.bo[buffer].textwidth > 0 and vim.bo[buffer].textwidth or 80);
 
+	local ratio = config.active.heading_ratio;
+
+	local fraction = MAX / (ratio[1] + ratio[2]);
+	local text_w = math.floor(fraction * ratio[1]);
+	local tag_w = math.floor(fraction * ratio[2]);
+
 	local _content = TSNode:field("heading_content")[1];
-
-	local function heading_tagger ()
-		---|fS
-
-		local text = vim.treesitter.get_node_text(_content, buffer, {});
-		local wrapped = utils.wrap(text);
-
-		local right = "";
-
-		local tags = config.get_tags(text);
-
-		for _, tag in ipairs(tags) do
-			local left = wrapped[#wrapped];
-
-			local L = vim.fn.strdisplaywidth(left);
-			local T = vim.fn.strdisplaywidth(tag);
-
-			if (T + 2) >= MAX then
-				local _right = vim.fn.printf("%" .. (MAX - L) .. "S", right);
-				wrapped[#wrapped] = left .. _right;
-
-				table.insert(wrapped, string.format("*%s*", tag));
-
-				right = "";
-			elseif vim.fn.strdisplaywidth(left .. right) + (T + 3) > MAX then
-				local _right = vim.fn.printf("%" .. (MAX - L) .. "S", right);
-				wrapped[#wrapped] = left .. _right;
-
-				_right = tag;
-			else
-				right = right .. string.format(" *%s*", tag);
-			end
-		end
-
-		if right ~= "" then
-			local left = wrapped[#wrapped];
-			local L = vim.fn.strdisplaywidth(left);
-
-			local _right = vim.fn.printf("%" .. (MAX - L) .. "S", right);
-			wrapped[#wrapped] = left .. _right;
-		end
-
-		heading = vim.list_extend(heading, wrapped);
-
-		---|fE
-	end
-
-	local function tag_section (text)
-	end
+	local R = { TSNode:range() };
 
 	if not _content then
-		goto no_content;
+		vim.api.nvim_buf_set_text(buffer, R[1], R[2], R[3], R[4], {});
+		return;
 	end
+
+	local text = vim.treesitter.get_node_text(_content, buffer, {});
+
+	local __tags = config.get_tags(text);
+	local _tags = {};
+
+	for _, tag in ipairs(__tags) do
+		table.insert(_tags, "*" .. string.gsub(tag, "%*", "") .. "*")
+	end
+
+	local content = format.format(
+		text:gsub("[\n\r]", ""),
+		text_w
+	);
+	local tags = format.format(
+		table.concat(_tags, " "),
+		tag_w
+	);
 
 	if #marker == 1 then
 		table.insert(heading, string.rep("=", MAX));
-		heading_tagger();
+		heading = vim.list_extend(heading, merge_cols({ width = text_w, alignment = "left", lines = content }, { width = tag_w, alignment = "right", lines = tags }))
 	elseif #marker == 2 then
 		table.insert(heading, string.rep("-", MAX));
-		heading_tagger();
+		heading = vim.list_extend(heading, merge_cols({ width = text_w, alignment = "left", lines = content }, { width = tag_w, alignment = "right", lines = tags }))
 	elseif #marker == 3 then
-		-- local _text = vim.treesitter.get_node_text(TSNode, buffer, {});
-		-- tag_section(_text .. " ~");
+		for l, line in ipairs(content) do
+			content[l] = string.upper(line):gsub("^[^A-Z0-9.%(%)]", ""):gsub("[^-A-Z0-9.%(%)_]", ""):gsub("^%s+", "");
+		end
+		heading = vim.list_extend(heading, merge_cols({ width = text_w, alignment = "left", lines = content }, { width = tag_w, alignment = "right", lines = tags }))
 	else
+		heading = vim.list_extend(heading, merge_cols({ width = text_w, alignment = "left", lines = content }, { width = tag_w, alignment = "right", lines = tags }));
+		for l, line in ipairs(heading) do
+			heading[l] = line .. " ~";
+		end
 	end
 
-	::no_content::
-
-	local R = { TSNode:range() };
 	vim.api.nvim_buf_set_text(buffer, R[1], R[2], R[3] - 1, -1, heading);
 
 	---|fE
@@ -194,9 +185,8 @@ markdown.block_quote = function (buffer, _, TSNode)
 	---|fE
 end
 
----@param buffer integer
 ---@param TSNode TSNode
-markdown.ignore_format = function (buffer, _, TSNode)
+markdown.ignore_format = function (_, _, TSNode)
 	local R = { TSNode:range() };
 
 	for l = R[1], R[3] - 1, 1 do
