@@ -101,6 +101,36 @@ inline.shortcut_link = function (buffer, _, TSNode)
 	---|fE
 end
 
+---@param buffer integer
+---@param TSNode TSNode
+inline.image = function (buffer, _, TSNode)
+	---|fS
+
+	local dest = TSNode:named_child(1);
+	table.insert(inline.images, dest);
+
+	clear_node(buffer, TSNode:child(6));
+	clear_node(buffer, dest)
+	clear_node(buffer, TSNode:child(4));
+
+	clear_node(buffer, TSNode:child(3));
+
+	if dest then
+		local _last = TSNode:child(3);
+
+		if _last then
+			local R = { _last:range() };
+
+			vim.api.nvim_buf_set_text(buffer, R[1], R[2], R[1], R[2], { "^" .. tostring(#inline.links) });
+		end
+	end
+
+	clear_node(buffer, TSNode:child(1));
+	clear_node(buffer, TSNode:child(0));
+
+	---|fE
+end
+
 inline.rule_map = {
 	{ "(strong_emphasis) @bold", inline.bold },
 	{ "(emphasis) @italic", inline.bold },
@@ -108,6 +138,8 @@ inline.rule_map = {
 	{ "(inline_link  (link_text)  (link_destination)) @link", inline.inline_link },
 	{ "(full_reference_link  (link_text)  (link_label)) @link", inline.full_reference_link },
 	{ "(shortcut_link) @link", inline.shortcut_link },
+
+	{ "(image) @link", inline.image },
 };
 
 inline.transform = function (TSTree, buffer, rule)
@@ -120,7 +152,9 @@ inline.transform = function (TSTree, buffer, rule)
 	end
 
 	for _, item in ipairs(stack) do
-		pcall(rule[2], buffer, item[1], item[2]);
+		vim.print(
+		pcall(rule[2], buffer, item[1], item[2])
+		);
 	end
 end
 
