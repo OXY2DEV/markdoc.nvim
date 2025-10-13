@@ -9,6 +9,8 @@ markdown.ignore_lines = {};
 ---@param buffer integer
 ---@param TSNode TSNode
 local function range (buffer, TSNode)
+	---|fS
+
 	local lines = vim.fn.split(
 		vim.treesitter.get_node_text(TSNode, buffer, {}),
 		"\n"
@@ -30,6 +32,32 @@ local function range (buffer, TSNode)
 	end
 
 	return R, { TSNode:range() };
+
+	---|fE
+end
+
+--[[ Aligns `text` using `width`. ]]
+---@param text string
+---@param width integer
+---@param alignment "left" | "right" | "center"
+---@return string
+local function align (text, width, alignment)
+	---|fS
+
+	local W = vim.fn.strdisplaywidth(text);
+
+	if alignment == "left" then
+		return text .. string.rep(" ", math.max(width - W, 0));
+	elseif alignment == "right" then
+		return string.rep(" ", math.max(width - W, 0)) .. text;
+	else
+		local B = math.ceil((width - W) / 2);
+		local A = math.floor((width - W) / 2);
+
+		return string.rep(" ", math.max(B, 0)) .. text .. string.rep(" ", math.max(A, 0));
+	end
+
+	---|fE
 end
 
 ---@class markdoc.col
@@ -48,21 +76,6 @@ local function merge_cols (...)
 
 	for _, col in ipairs(cols) do
 		lines = math.max(lines, #col.lines);
-	end
-
-	local function align (text, width, alignment)
-		local W = vim.fn.strdisplaywidth(text);
-
-		if alignment == "left" then
-			return text .. string.rep(" ", math.max(width - W, 0));
-		elseif alignment == "right" then
-			return string.rep(" ", math.max(width - W, 0)) .. text;
-		else
-			local B = math.ceil((width - W) / 2);
-			local A = math.floor((width - W) / 2);
-
-			return string.rep(" ", math.max(B, 0)) .. text .. string.rep(" ", math.max(A, 0));
-		end
 	end
 
 	local output = {};
@@ -265,11 +278,15 @@ end
 
 ---@param TSNode TSNode
 markdown.ignore_format = function (buffer, _, TSNode)
+	---|fS
+
 	local R = range(buffer, TSNode);
 
 	for l = R[1], R[3] - 1, 1 do
 		table.insert(markdown.ignore_lines, l);
 	end
+
+	---|fE
 end
 
 ---@param buffer integer
@@ -387,6 +404,198 @@ markdown.indented_code_block = function (buffer, _, TSNode)
 	---|fE
 end
 
+---@param buffer integer
+---@param TSNode TSNode
+markdown.table = function (buffer, _, TSNode)
+	---|fS
+
+	local data = {
+		header = {},
+		alignments = {},
+
+		rows = {}
+	};
+
+	local col_widths = {};
+
+	---@param col TSNode
+	local function width (col)
+		local text = vim.treesitter.get_node_text(col, buffer, {});
+		return math.min(config.active.max_col_size or 20, vim.fn.strdisplaywidth(text));
+	end
+
+	--[[ Creates a border(*optionally* with given text). ]]
+	---@param kind string
+	---@param ...? string
+	---@return string?
+	local function border (kind, ...)
+		---|fS
+
+		local borders = vim.tbl_extend("keep", config.active.table_borders or {}, {
+			header = { "|", "", "|", "|" },
+			separator = { "", "", "", "" },
+			row = { "", "", "", "" },
+			row_seperator = {},
+
+			top = { "/", "-", "}", "|" },
+			bottom = { "{", "-", "//", "|" },
+		});
+
+		local cols = { ... };
+		local this_border = borders[kind] or { "", "", "", "" };
+
+		if #this_border == 0 and #cols == 0 then
+			return nil;
+		end
+
+		local output = this_border[1] or "";
+
+		for c = 1, #col_widths, 1 do
+			local align_k = data.alignments[c] or "left";
+
+			if cols[c] then
+				output = output .. " " .. align(cols[c], col_widths[c] - 2, align_k) .. " ";
+			else
+				output = output .. string.rep(this_border[2] or "", col_widths[c]);
+			end
+
+			if c < #col_widths then
+				output = output .. (this_border[4] or "");
+			else
+				output = output .. (this_border[3] or "");
+			end
+		end
+
+		return output;
+
+		---|fE
+	end
+
+	---@param row TSNode
+	local function parse_row (row)
+		---|fS
+
+		local output = {};
+		local c = 1;
+
+		for col, _ in row:iter_children() do
+			if col:named() and ( col:type() == "pipe_table_cell" or col:type() == "pipe_table_delimiter_cell" ) then
+				local text = vim.treesitter.get_node_text(col, buffer, {});
+
+				if config.active.table_preserve_space == false then
+					text = string.gsub(text, "%s+$", "");
+					text = string.gsub(text, "^%s+", "");
+				end
+
+				table.insert(output, text);
+
+				if not col_widths[c] then
+					col_widths[c] = width(col) + 2;
+				elseif col_widths[c] < width(col) + 2 then
+					col_widths[c] = width(col) + 2;
+				end
+
+				c = c + 1;
+			end
+		end
+
+		return output;
+
+		---|fE
+	end
+
+	for child, _ in TSNode:iter_children() do
+		---|fS "chunk: Parse table into data."
+
+		if vim.list_contains({ "pipe_table_header", "pipe_table_delimiter_row", "pipe_table_row" }, child:type()) then
+			local cols = parse_row(child);
+
+			if child:type() == "pipe_table_header" then
+				data.header = cols;
+			elseif child:type() == "pipe_table_row" then
+				table.insert(data.rows, cols);
+			else
+				for _, col in ipairs(cols) do
+					if string.match(col, ":%-+:") then
+						table.insert(data.alignments, "center");
+					elseif string.match(col, ":%-+") then
+						table.insert(data.alignments, "left");
+					elseif string.match(col, "%-+:") then
+						table.insert(data.alignments, "right");
+					else
+						table.insert(data.alignments, config.active.table_align or "left");
+					end
+				end
+			end
+		end
+
+		---|fE
+	end
+
+	local lines = {};
+
+	local function new_row (kind, row)
+		---|fS "chunk: Create a new wrapped row"
+
+		local formatted_row = {};
+		local L = 0;
+
+		for c, col in ipairs(row) do
+			local formatted = format.format(col, col_widths[c] - 2);
+			L = math.max(L, #formatted);
+
+			table.insert(formatted_row, formatted);
+		end
+
+		for r = 1, L, 1 do
+			local this_line = {};
+
+			for _, col in ipairs(formatted_row) do
+				table.insert(this_line, col[r] or "");
+			end
+
+			table.insert(lines, border(kind, unpack(this_line)));
+		end
+
+		---|fE
+	end
+
+	local R = range(buffer, TSNode);
+	local leader = vim.api.nvim_buf_get_text(buffer, R[1], 0, R[1], R[2], {})[1];
+
+	table.insert(lines, border("top"));
+
+	new_row("header", data.header);
+
+	if #data.rows == 0 then
+		table.insert(lines, border("bottom"));
+	else
+		table.insert(lines, border("separator"));
+
+		for r, row in ipairs(data.rows) do
+			new_row("row", row);
+
+			if r < #data.rows then
+				table.insert(lines, border("row_seperator"));
+			end
+		end
+
+		table.insert(lines, border("bottom"));
+	end
+
+	if leader then
+		for l, line in ipairs(lines) do
+			if l > 1 then
+				lines[l] = leader .. line;
+			end
+		end
+	end
+
+	vim.api.nvim_buf_set_text(buffer, R[1], R[2], R[3], R[4], lines);
+
+	---|fE
+end
+
 markdown.pre_rule = {
 	{ "(atx_heading) @atx", markdown.atx_heading }
 };
@@ -396,6 +605,7 @@ markdown.post_rule = {
 
 	{ "(atx_heading) @atx", markdown.atx_h3 },
 
+	{ "(pipe_table) @table", markdown.table },
 	{ "(block_quote) @block", markdown.block_quote },
 	{ "(indented_code_block) @code_block", markdown.indented_code_block },
 	{ "(fenced_code_block) @code_block", markdown.fenced_code_block },

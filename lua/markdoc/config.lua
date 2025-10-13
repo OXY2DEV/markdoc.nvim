@@ -18,6 +18,15 @@ config.default = {
 
 	heading_ratio = { 6, 4 },
 
+	table_borders = {
+		header = { "│", "│", "│", "│" },
+		separator = { "├", "─", "┤", "┼" },
+		row = { "│", "│", "│", "│" },
+		row_separator = { "├", "─", "┤", "┼" },
+
+		top = { "╭", "─", "╮", "┬" },
+		bottom = { "╰", "─", "╯", "┴" },
+	},
 	tags = {
 		default = { "a", "b", "c" }
 	},
