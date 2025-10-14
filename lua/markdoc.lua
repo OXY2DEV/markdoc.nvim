@@ -19,6 +19,7 @@ markdoc.init = function ()
 		vim.api.nvim_buf_get_lines(buf, 0, -1, false)
 	);
 
+	require("markdoc.html").walk(new);
 	require("markdoc.markdown_inline").walk(new);
 	require("markdoc.markdown").walk(new);
 end
