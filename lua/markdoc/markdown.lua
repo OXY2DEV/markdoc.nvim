@@ -301,7 +301,8 @@ markdown.formatter = function (buffer, _, TSNode)
 
 	local lines = vim.fn.split(
 		vim.treesitter.get_node_text(TSNode, buffer, {}),
-		"\n"
+		"\n",
+		true
 	);
 
 	local R = range(buffer, TSNode);
@@ -336,8 +337,33 @@ markdown.formatter = function (buffer, _, TSNode)
 		end
 	end
 
-	vim.api.nvim_buf_set_text(buffer, R[1], R[2], R[3], R[4], {});
-	vim.api.nvim_buf_set_lines(buffer, R[1], R[1], false, formatted);
+	vim.api.nvim_buf_set_text(buffer, R[1], R[2], R[3], R[4], formatted);
+
+	---|fE
+end
+
+---@param buffer integer
+---@param TSNode TSNode
+markdown.denest_code_block = function (buffer, _, TSNode)
+	---|fS
+
+	local R = range(buffer, TSNode);
+
+	if R[2] == 0 then
+		return;
+	end
+
+	local lines = vim.fn.split(
+		vim.treesitter.get_node_text(TSNode, buffer, {}),
+		"\n"
+	);
+
+	for l = 2, #lines, 1 do
+		lines[l] = string.sub(lines[l], R[2] + 1);
+	end
+
+	-- NOTE: We need to start replacing from the start of the line.
+	vim.api.nvim_buf_set_text(buffer, R[1], 0, R[3], R[4], lines);
 
 	---|fE
 end
@@ -650,7 +676,9 @@ markdown.pre_rule = {
 	{ "(atx_heading) @atx", markdown.atx_heading }
 };
 markdown.post_rule = {
-	{ "[ (pipe_table) (fenced_code_block) (indented_code_block) ] @format", markdown.ignore_format },
+	{ "[ (pipe_table) (fenced_code_block) (indented_code_block) ] @no_format", markdown.ignore_format },
+	{ "[ (fenced_code_block) (indented_code_block) ] @denest", markdown.denest_code_block },
+
 	{ "[ (paragraph) (block_quote) (list) ] @format", markdown.formatter },
 
 	-- NOTE: Convert nested aligned paragraphs first as markdown syntax is lost during conversion.
@@ -676,9 +704,9 @@ markdown.transform = function (TSTree, buffer, rule)
 	end
 
 	for _, item in ipairs(stack) do
-		vim.print(
+		-- vim.print(
 			pcall(rule[2], buffer, item[1], item[2])
-		)
+		-- )
 	end
 end
 
