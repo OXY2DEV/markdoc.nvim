@@ -54,6 +54,10 @@ local function normalize (buffer, TSNode)
 
 	_t = string.gsub(_t, "%s+$", "");
 
+	-- feat: Mimic how browsers handle spaces in `HTML`.
+	_t = string.gsub(_t, "[\n\r]%s*", " ");
+	_t = string.gsub(_t, "%s%s+", " ");
+
 	return _t;
 
 	---|fE
@@ -136,8 +140,33 @@ html.keycode = function (buffer, _, TSNode)
 	---|fE
 end
 
+---@param buffer integer
+---@param TSNode TSNode
+html.paragraph = function (buffer, _, TSNode)
+	---|fS
+
+	local start = TSNode:named_child(0) --[[@as TSNode]];
+	local text = vim.treesitter.get_node_text(start, buffer, {});
+
+	local align = string.match(text or "", "align='(%w-)'") or string.match(text or "", 'align="(%w-)"');
+
+	local normal = normalize(buffer, TSNode);
+
+	if align then
+		normal = string.format("::%s::", align) .. normal;
+	end
+
+	local lines = vim.fn.split(normal, "\n");
+
+	local R = { TSNode:range() };
+	vim.api.nvim_buf_set_text(buffer, R[1], R[2], R[3], R[4], lines);
+
+	---|fE
+end
+
 html.rules = {
 	{ '(element (end_tag ((tag_name) @tag_name (#lua-match? @tag_name "^h%d+$")) )) @heading', html.heading },
+	{ '(element (end_tag ((tag_name) @tag_name (#lua-match? @tag_name "^p$")) )) @paragraph', html.paragraph },
 
 	{ '(element (end_tag ((tag_name) @tag_name (#any-of? @tag_name "b" "bold" "em" "emphasis")) )) @bold', html.bold },
 	{ '(element (end_tag ((tag_name) @tag_name (#any-of? @tag_name "i" "italic")) )) @italic', html.italic },

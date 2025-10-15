@@ -596,6 +596,56 @@ markdown.table = function (buffer, _, TSNode)
 	---|fE
 end
 
+---@param buffer integer
+---@param TSNode TSNode
+markdown.paragraph = function (buffer, _, TSNode)
+	---|fS
+
+	local lines = vim.fn.split(
+		vim.treesitter.get_node_text(TSNode, buffer, {}),
+		"\n"
+	);
+	local R = range(buffer, TSNode);
+
+	for l = 2, #lines, 1 do
+		lines[l] = string.sub(lines[l], R[2]);
+	end
+
+	local alignment = string.match(lines[1], "^::(%w+)::") or "left";
+	lines[1] = string.gsub(lines[1], "^::%w+::", "");
+
+	local before = vim.api.nvim_buf_get_text(buffer, R[1], 0, R[1], R[2], {})[1];
+	local W = (config.active.textwidth or 80) - vim.fn.strdisplaywidth(before or "");
+
+	local aligned = {}
+
+	for l, line in ipairs(lines) do
+		table.insert(aligned, (l > 1 and before or "") .. align(line, W, alignment));
+	end
+
+	vim.api.nvim_buf_set_text(buffer, R[1], R[2], R[3], R[4], aligned);
+
+	---|fE
+end
+
+---@param buffer integer
+---@param TSNode TSNode
+markdown.paragraph_root = function (buffer, _, TSNode)
+	if not TSNode:parent() or not TSNode:parent():parent() or TSNode:parent():parent():type() ~= "document" then
+		return;
+	end
+
+	markdown.paragraph(buffer, _, TSNode);
+end
+
+---@param buffer integer
+---@param TSNode TSNode
+markdown.paragraph_nested = function (buffer, _, TSNode)
+	if not TSNode:parent() or not TSNode:parent():parent() or TSNode:parent():parent():type() ~= "document" then
+		markdown.paragraph(buffer, _, TSNode);
+	end
+end
+
 markdown.pre_rule = {
 	{ "(atx_heading) @atx", markdown.atx_heading }
 };
@@ -603,12 +653,16 @@ markdown.post_rule = {
 	{ "[ (pipe_table) (fenced_code_block) (indented_code_block) ] @format", markdown.ignore_format },
 	{ "[ (paragraph) (block_quote) (list) ] @format", markdown.formatter },
 
+	-- NOTE: Convert nested aligned paragraphs first as markdown syntax is lost during conversion.
+	{ '((paragraph) @paragraph (#lua-match? @paragraph "^::%w+::"))', markdown.paragraph_nested },
 	{ "(atx_heading) @atx", markdown.atx_h3 },
 
 	{ "(pipe_table) @table", markdown.table },
 	{ "(block_quote) @block", markdown.block_quote },
 	{ "(indented_code_block) @code_block", markdown.indented_code_block },
 	{ "(fenced_code_block) @code_block", markdown.fenced_code_block },
+
+	{ '((paragraph) @paragraph (#lua-match? @paragraph "^::%w+::"))', markdown.paragraph_root },
 };
 
 
