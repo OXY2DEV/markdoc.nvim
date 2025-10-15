@@ -1,30 +1,9 @@
 local html = {};
 
----@param TSNode? TSNode
-local function clear_node (buffer, TSNode)
-	---|fS
-
-	if not TSNode then
-		return;
-	end
-
-	local R = { TSNode:range() };
-
-	vim.api.nvim_buf_set_text(buffer, R[1], R[2], R[3], R[4], {});
-
-	---|fE
-end
-
 ---@param buffer integer
 ---@param TSNode TSNode
-local function get_text (buffer, TSNode)
-	local _t = vim.treesitter.get_node_text(TSNode, buffer, {});
-	return string.gsub(_t, "%s*[\n\r]+", "");
-end
-
----@param buffer integer
----@param TSNode TSNode
-local function normalize (buffer, TSNode)
+---@param inline? boolean
+local function normalize (buffer, TSNode, inline)
 	---|fS
 
 	local _t = vim.treesitter.get_node_text(TSNode, buffer, {});
@@ -54,9 +33,11 @@ local function normalize (buffer, TSNode)
 
 	_t = string.gsub(_t, "%s+$", "");
 
-	-- feat: Mimic how browsers handle spaces in `HTML`.
-	_t = string.gsub(_t, "[\n\r]%s*", " ");
-	_t = string.gsub(_t, "%s%s+", " ");
+	if inline ~= false then
+		-- feat: Mimic how browsers handle spaces in `HTML`.
+		_t = string.gsub(_t, "[\n\r]%s*", " ");
+		_t = string.gsub(_t, "%s%s+", " ");
+	end
 
 	return _t;
 
@@ -164,9 +145,42 @@ html.paragraph = function (buffer, _, TSNode)
 	---|fE
 end
 
+---@param buffer integer
+---@param TSNode TSNode
+html.details = function (buffer, _, TSNode)
+	---|fS
+
+	local normal = normalize(buffer, TSNode, false);
+	local lines = vim.fn.split(normal, "\n");
+
+	local R = { TSNode:range() };
+	vim.api.nvim_buf_set_text(buffer, R[1], R[2], R[3], R[4], lines);
+
+	---|fE
+end
+
+---@param buffer integer
+---@param TSNode TSNode
+html.summary = function (buffer, _, TSNode)
+	---|fS
+
+	local normal = normalize(buffer, TSNode);
+	local lines = vim.fn.split(normal, "\n");
+
+	lines[1] = "### " .. lines[1];
+
+	local R = { TSNode:range() };
+	vim.api.nvim_buf_set_text(buffer, R[1], R[2], R[3], R[4], lines);
+
+	---|fE
+end
+
 html.rules = {
 	{ '(element (end_tag ((tag_name) @tag_name (#lua-match? @tag_name "^h%d+$")) )) @heading', html.heading },
 	{ '(element (end_tag ((tag_name) @tag_name (#lua-match? @tag_name "^p$")) )) @paragraph', html.paragraph },
+
+	{ '(element (end_tag ((tag_name) @tag_name (#lua-match? @tag_name "^summary$")) )) @summary', html.summary },
+	{ '(element (end_tag ((tag_name) @tag_name (#lua-match? @tag_name "^details$")) )) @details', html.details },
 
 	{ '(element (end_tag ((tag_name) @tag_name (#any-of? @tag_name "b" "bold" "em" "emphasis")) )) @bold', html.bold },
 	{ '(element (end_tag ((tag_name) @tag_name (#any-of? @tag_name "i" "italic")) )) @italic', html.italic },
