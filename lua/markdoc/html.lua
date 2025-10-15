@@ -17,8 +17,52 @@ end
 
 ---@param buffer integer
 ---@param TSNode TSNode
+local function get_text (buffer, TSNode)
+	local _t = vim.treesitter.get_node_text(TSNode, buffer, {});
+	return string.gsub(_t, "%s*[\n\r]+", "");
+end
+
+---@param buffer integer
+---@param TSNode TSNode
+local function normalize (buffer, TSNode)
+	---|fS
+
+	local _t = vim.treesitter.get_node_text(TSNode, buffer, {});
+
+	local _start = TSNode:named_child(0) --[[@as TSNode]];
+	local start = vim.treesitter.get_node_text(_start, buffer, {});
+
+	_t = string.gsub(
+		_t,
+		vim.pesc(start),
+		""
+	);
+
+	_t = string.gsub(_t, "^%s+", "");
+
+	local _finish = TSNode:named_child(TSNode:named_child_count() - 1) --[[@as TSNode]];
+
+	if _finish and _finish:type() == "end_tag" then
+		local finish = vim.treesitter.get_node_text(_finish, buffer, {});
+
+		_t = string.gsub(
+			_t,
+			vim.pesc(finish),
+			""
+		);
+	end
+
+	_t = string.gsub(_t, "%s+$", "");
+
+	return _t;
+
+	---|fE
+end
+
+---@param buffer integer
+---@param TSNode TSNode
 html.heading = function (buffer, _, TSNode)
-	local _end = TSNode:named_child(TSNode:named_child_count() - 1);
+	---|fS
 
 	local start = TSNode:named_child(0) --[[@as TSNode]];
 	local text = vim.treesitter.get_node_text(start, buffer, {});
@@ -33,17 +77,72 @@ html.heading = function (buffer, _, TSNode)
 		level = 6;
 	end
 
-	local R = { start:range() };
+	local normal = normalize(buffer, TSNode);
+	normal = string.rep("#", level) .. " " .. normal;
 
-	if _end and _end:type() == "end_tag" then
-		clear_node(buffer, _end);
-	end
+	local lines = vim.fn.split(normal, "\n");
+	local R = { TSNode:range() };
 
-	vim.api.nvim_buf_set_text(buffer, R[1], R[2], R[3], R[4], { string.rep("#", level) .. " " })
+	vim.api.nvim_buf_set_text(buffer, R[1], R[2], R[3], R[4], lines);
+
+	---|fE
+end
+
+---@param buffer integer
+---@param TSNode TSNode
+html.bold = function (buffer, _, TSNode)
+	---|fS
+
+	local normal = normalize(buffer, TSNode);
+	normal = "**" .. string.gsub(normal, "%s", "") .. "**";
+
+	local lines = vim.fn.split(normal, "\n");
+
+	local R = { TSNode:range() };
+	vim.api.nvim_buf_set_text(buffer, R[1], R[2], R[3], R[4], lines);
+
+	---|fE
+end
+
+---@param buffer integer
+---@param TSNode TSNode
+html.italic = function (buffer, _, TSNode)
+	---|fS
+
+	local normal = normalize(buffer, TSNode);
+	normal = "*" .. string.gsub(normal, "%s", "") .. "*";
+
+	local lines = vim.fn.split(normal, "\n");
+
+	local R = { TSNode:range() };
+	vim.api.nvim_buf_set_text(buffer, R[1], R[2], R[3], R[4], lines);
+
+	---|fE
+end
+
+---@param buffer integer
+---@param TSNode TSNode
+html.keycode = function (buffer, _, TSNode)
+	---|fS
+
+	local normal = normalize(buffer, TSNode);
+	normal = "<" .. string.gsub(normal, "%s", "") .. ">";
+
+	local lines = vim.fn.split(normal, "\n");
+
+	local R = { TSNode:range() };
+	vim.api.nvim_buf_set_text(buffer, R[1], R[2], R[3], R[4], lines);
+
+	---|fE
 end
 
 html.rules = {
-	{ '(element (end_tag ((tag_name) @tag_name (#lua-match? @tag_name "h%d+")) )) @heading', html.heading },
+	{ '(element (end_tag ((tag_name) @tag_name (#lua-match? @tag_name "^h%d+$")) )) @heading', html.heading },
+
+	{ '(element (end_tag ((tag_name) @tag_name (#any-of? @tag_name "b" "bold" "em" "emphasis")) )) @bold', html.bold },
+	{ '(element (end_tag ((tag_name) @tag_name (#any-of? @tag_name "i" "italic")) )) @italic', html.italic },
+
+	{ '(element (end_tag ((tag_name) @tag_name (#lua-match? @tag_name "^kbd$")) )) @keycode', html.keycode },
 };
 
 html.transform = function (TSTree, buffer, rule)
