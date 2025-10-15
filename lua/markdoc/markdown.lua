@@ -154,7 +154,7 @@ markdown.atx_heading = function (buffer, _, TSNode)
 		return;
 	end
 
-	vim.api.nvim_buf_set_text(buffer, R[1], R[2], R[3], R[4], heading);
+	vim.api.nvim_buf_set_text(buffer, R[1], 0, R[3], R[4], heading);
 
 	---|fE
 end
