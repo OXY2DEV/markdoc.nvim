@@ -33,6 +33,8 @@ config.default = {
 		},
 
 		block_quotes = {
+			---|fS
+
 			default = {
 				border = "▋",
 			},
@@ -148,7 +150,15 @@ config.default = {
 				preview = "󰳦 Caution",
 				icon = "󰳦",
 			}
+
+			---|fE
 		},
+
+		tags = {
+			-- default = { "a", "b", "c" }
+		},
+
+		---|fE
 	},
 
 	table_borders = {
@@ -159,9 +169,6 @@ config.default = {
 
 		top = { "╭", "─", "╮", "┬" },
 		bottom = { "╰", "─", "╯", "┴" },
-	},
-	tags = {
-		default = { "a", "b", "c" }
 	},
 	list_items = {
 		indent_size = 4,
@@ -200,28 +207,35 @@ config.block_quote = function (leader)
 	return default, false;
 end
 
+--- Gets tags for heading.
+---@param text string
+---@return string[]
 config.get_tags = function (text)
-	if not config.active.tags then
+	---|fS
+
+	if not config.active.markdown.tags or vim.tbl_isempty(config.active.markdown.tags) then
 		return {};
 	end
 
-	local keys = vim.tbl_keys(config.active.tags or {});
+	local keys = vim.tbl_keys(config.active.markdown.tags or {});
 
 	for _, key in ipairs(keys) do
 		if string.match(text, key) then
-			return config.eval(config.active.tags[key], text);
+			return config.eval(config.active.markdown.tags[key], text) or {};
 		end
 	end
 
-	return config.eval(config.active.tags.default, text);
+	return config.eval(config.active.markdown.tags.default, text) or {};
+
+	---|fE
 end
 
 --- Modifies URL.
----@param buffer integer
+---@param _ integer
 ---@param description string
 ---@param destination string
 ---@return string
-config.modify_url = function (buffer, description, destination)
+config.modify_url = function (_, description, destination)
 	---|fS
 
 	if not config.active.markdown.link_url_modifiers or #config.active.markdown.link_url_modifiers == 0 then

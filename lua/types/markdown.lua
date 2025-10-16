@@ -8,6 +8,7 @@
 ---@field link_url_modifiers markdown.url_modifier.entry[] Changes the url based on a pattern
 ---
 ---@field block_quotes markdoc.config.markdown.block_quotes
+---@field tags markdoc.config.markdown.tags
 
 
 ---@alias markdown.url_modifier
@@ -36,4 +37,10 @@
 ---@field border? string
 ---@field icon? string
 ---@field preview? string
+
+
+---@class markdoc.config.markdown.tags
+---
+---@field default? string[]
+---@field [string] string[]
 
