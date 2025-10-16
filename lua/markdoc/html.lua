@@ -90,7 +90,12 @@ html.comment = function (buffer, _, TSNode)
 	---|fS
 
 	local R = { TSNode:range() };
-	vim.api.nvim_buf_set_text(buffer, R[1], R[2], R[3], R[4], { "" });
+
+	if R[2] == 0 then
+		vim.api.nvim_buf_set_lines(buffer, R[1], R[3] + 1, false, {});
+	else
+		vim.api.nvim_buf_set_text(buffer, R[1], R[2], R[3], R[4], {});
+	end
 
 	---|fE
 end
@@ -298,9 +303,38 @@ html.summary = function (buffer, _, TSNode)
 	---|fE
 end
 
+html.ignore_end = {};
+
+---@param TSNode TSNode
+html.mark_ignore_end = function (_, _, TSNode)
+	local R = { TSNode:range() };
+	table.insert(html.ignore_end, R[3]);
+end
+
+---@param buffer integer
+---@param TSNode TSNode
+html.clear_ignore = function (buffer, _, TSNode)
+	---|fS
+
+	local last = table.remove(html.ignore_end);
+
+	if not last then
+		return;
+	end
+
+	local R = { TSNode:range() };
+	vim.api.nvim_buf_set_lines(buffer, R[1], last, false, {});
+
+	---|fE
+end
+
 ---@type markdoc.rule[]
 html.rules = {
-	{ '((comment) @comment (#lua-match? @comment "^%<!%-%-%s*markdoc"))', html.config },
+	{ '((comment) @comment (#lua-match? @comment "^%<!%-%-%s*markdoc%s+"))', html.config },
+
+	{ '((comment) @start (#lua-match? @start "^%<!%-%-%s*markdoc_ignore_end%s*%-%-%>"))', html.mark_ignore_end },
+	{ '((comment) @start (#lua-match? @start "^%<!%-%-%s*markdoc_ignore_start%s*%-%-%>"))', html.clear_ignore },
+
 	{ "(comment) @comment", html.comment },
 
 	{ '(element (end_tag ((tag_name) @tag_name (#lua-match? @tag_name "^h%d+$")) )) @heading', html.heading },
@@ -346,6 +380,8 @@ end
 ---@param buffer integer
 html.walk = function (buffer)
 	---|fS
+
+	html.ignore_end = {};
 
 	for _, rule in ipairs(html.rules) do
 		local root_parser = vim.treesitter.get_parser(buffer);
