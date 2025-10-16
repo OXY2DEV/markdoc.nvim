@@ -246,7 +246,7 @@ markdown.block_quote = function (buffer, _, TSNode)
 				R[1] + (l - 1),
 				-1,
 
-				{ callout_config.border .. callout_config.icon .. title }
+				{ callout_config.border .. " " .. callout_config.icon .. title }
 			);
 		elseif l == 1 and callout_config.preview then
 			vim.api.nvim_buf_set_text(
@@ -257,7 +257,7 @@ markdown.block_quote = function (buffer, _, TSNode)
 				R[1] + (l - 1),
 				-1,
 
-				{ callout_config.border .. callout_config.preview }
+				{ callout_config.border .. " " .. callout_config.preview }
 			);
 		else
 			vim.api.nvim_buf_set_text(

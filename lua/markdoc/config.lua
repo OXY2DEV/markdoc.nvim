@@ -31,6 +31,124 @@ config.default = {
 			-- 	function () end
 			-- }
 		},
+
+		block_quotes = {
+			default = {
+				border = "▋",
+			},
+
+			["ABSTRACT"] = {
+				preview = "󱉫 Abstract",
+				icon = "󱉫",
+			},
+			["SUMMARY"] = {
+				preview = "󱉫 Summary",
+				icon = "󱉫",
+			},
+			["TLDR"] = {
+				preview = "󱉫 Tldr",
+				icon = "󱉫",
+			},
+			["TODO"] = {
+				preview = " Todo",
+				icon = "",
+			},
+			["INFO"] = {
+				preview = " Info",
+
+				custom_title = true,
+				icon = "",
+			},
+			["SUCCESS"] = {
+				preview = "󰗠 Success",
+				icon = "󰗠",
+			},
+			["CHECK"] = {
+				preview = "󰗠 Check",
+				icon = "󰗠",
+			},
+			["DONE"] = {
+				preview = "󰗠 Done",
+				icon = "󰗠",
+			},
+			["QUESTION"] = {
+				preview = "󰋗 Question",
+				icon = "󰋗",
+			},
+			["HELP"] = {
+				preview = "󰋗 Help",
+				icon = "󰋗",
+			},
+			["FAQ"] = {
+				preview = "󰋗 Faq",
+				icon = "󰋗",
+			},
+			["FAILURE"] = {
+				preview = "󰅙 Failure",
+				icon = "󰅙",
+			},
+			["FAIL"] = {
+				preview = "󰅙 Fail",
+				icon = "󰅙",
+			},
+			["MISSING"] = {
+				preview = "󰅙 Missing",
+				icon = "󰅙",
+			},
+			["DANGER"] = {
+				preview = " Danger",
+				icon = "",
+			},
+			["ERROR"] = {
+				preview = " Error",
+				icon = "",
+			},
+			["BUG"] = {
+				preview = " Bug",
+				icon = "",
+			},
+			["EXAMPLE"] = {
+				preview = "󱖫 Example",
+				icon = "󱖫",
+			},
+			["QUOTE"] = {
+				preview = " Quote",
+				icon = "",
+			},
+			["CITE"] = {
+				preview = " Cite",
+				icon = "",
+			},
+			["HINT"] = {
+				preview = " Hint",
+				icon = "",
+			},
+			["ATTENTION"] = {
+				preview = " Attention",
+				icon = "",
+			},
+
+			["NOTE"] = {
+				preview = "󰋽 Note",
+				icon = "󰋽",
+			},
+			["TIP"] = {
+				preview = " Tip",
+				icon = "",
+			},
+			["IMPORTANT"] = {
+				preview = " Important",
+				icon = "",
+			},
+			["WARNING"] = {
+				preview = " Warning",
+				icon = "",
+			},
+			["CAUTION"] = {
+				preview = "󰳦 Caution",
+				icon = "󰳦",
+			}
+		},
 	},
 
 	table_borders = {
@@ -45,16 +163,6 @@ config.default = {
 	tags = {
 		default = { "a", "b", "c" }
 	},
-	block_quotes = {
-		default = {
-			border = "|"
-		},
-		NOTE = {
-			border = "A",
-			icon = "# ",
-			preview = "$ Note"
-		},
-	},
 	list_items = {
 		indent_size = 4,
 		shift_width = 4
@@ -64,23 +172,32 @@ config.default = {
 ---@type markdoc.config
 config.active = vim.deepcopy(config.default, true);
 
+-- Get `block quote` configuration.
+---@param leader string
+---@return table
+---@return boolean
 config.block_quote = function (leader)
 	leader = leader or "";
 	local callout = string.match(leader, "^%>%s*%[!([^%]]+)%]");
 
 	if not callout then
-		return config.eval(config.active.block_quotes.default, leader), false;
+		return config.eval(config.active.markdown.block_quotes.default, leader), false;
 	end
 
-	local keys = vim.tbl_keys(config.active.block_quotes or {});
+	local keys = vim.tbl_keys(config.active.markdown.block_quotes or {});
+	---@type markdown.block_quotes.opts
+	local default = config.eval(config.active.markdown.block_quotes.default, callout);
 
 	for _, key in ipairs(keys) do
 		if string.match(callout, key) then
-			return config.eval(config.active.block_quotes[key], callout), true;
+			---@type markdown.block_quotes.opts
+			local this = config.eval(config.active.markdown.block_quotes[key], callout);
+
+			return vim.tbl_extend("force", default or {}, this or {}), true;
 		end
 	end
 
-	return config.eval(config.active.block_quotes.default, leader), false;
+	return default, false;
 end
 
 config.get_tags = function (text)
