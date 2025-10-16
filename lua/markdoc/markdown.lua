@@ -8,6 +8,7 @@ markdown.ignore_lines = {};
 
 ---@param buffer integer
 ---@param TSNode TSNode
+---@return integer[]
 local function range (buffer, TSNode)
 	---|fS
 
@@ -31,7 +32,7 @@ local function range (buffer, TSNode)
 		R[4] = -1;
 	end
 
-	return R, { TSNode:range() };
+	return R;
 
 	---|fE
 end
@@ -105,9 +106,8 @@ markdown.atx_heading = function (buffer, _, TSNode)
 	local marker = vim.treesitter.get_node_text(_marker, buffer, {});
 	local heading = {};
 
-	local MAX = config.active.textwidth or (vim.bo[buffer].textwidth > 0 and vim.bo[buffer].textwidth or 80);
-
-	local ratio = config.active.heading_ratio;
+	local MAX = config.active.generic.textwidth or (vim.bo[buffer].textwidth > 0 and vim.bo[buffer].textwidth or 80);
+	local ratio = config.active.markdown.heading_ratio;
 
 	local fraction = MAX / (ratio[1] + ratio[2]);
 	local text_w = math.floor(fraction * ratio[1]);
@@ -173,9 +173,8 @@ markdown.atx_h3 = function (buffer, _, TSNode)
 
 	local heading = {};
 
-	local MAX = config.active.textwidth or (vim.bo[buffer].textwidth > 0 and vim.bo[buffer].textwidth or 80);
-
-	local ratio = config.active.heading_ratio;
+	local MAX = config.active.generic.textwidth or (vim.bo[buffer].textwidth > 0 and vim.bo[buffer].textwidth or 80);
+	local ratio = config.active.markdown.heading_ratio;
 
 	local fraction = MAX / (ratio[1] + ratio[2]);
 	local text_w = math.floor(fraction * ratio[1]);
@@ -415,7 +414,7 @@ markdown.indented_code_block = function (buffer, _, TSNode)
 		"\n"
 	);
 
-	table.insert(lines, 1, string.format(">%s", config.active.code_block_lang or ""));
+	table.insert(lines, 1, string.format(">%s", config.active.markdown.code_blocks.fallback_language or ""));
 	table.insert(lines, "<");
 
 	-- for l = 2, #lines - 1 do
@@ -447,7 +446,7 @@ markdown.table = function (buffer, _, TSNode)
 	---@param col TSNode
 	local function width (col)
 		local text = vim.treesitter.get_node_text(col, buffer, {});
-		return math.min(config.active.max_col_size or 20, vim.fn.strdisplaywidth(text));
+		return math.min(config.active.markdown.tables.max_col_size or 20, vim.fn.strdisplaywidth(text));
 	end
 
 	--[[ Creates a border(*optionally* with given text). ]]
@@ -457,7 +456,8 @@ markdown.table = function (buffer, _, TSNode)
 	local function border (kind, ...)
 		---|fS
 
-		local borders = vim.tbl_extend("keep", config.active.table_borders or {}, {
+		---@type markdown.tables.border
+		local borders = vim.tbl_extend("keep", config.active.markdown.tables.borders or {}, {
 			header = { "|", "", "|", "|" },
 			separator = { "", "", "", "" },
 			row = { "", "", "", "" },
@@ -508,7 +508,7 @@ markdown.table = function (buffer, _, TSNode)
 			if col:named() and ( col:type() == "pipe_table_cell" or col:type() == "pipe_table_delimiter_cell" ) then
 				local text = vim.treesitter.get_node_text(col, buffer, {});
 
-				if config.active.table_preserve_space == false then
+				if config.active.markdown.tables.preserve_whitespace == false then
 					text = string.gsub(text, "%s+$", "");
 					text = string.gsub(text, "^%s+", "");
 				end
@@ -549,7 +549,7 @@ markdown.table = function (buffer, _, TSNode)
 					elseif string.match(col, "%-+:") then
 						table.insert(data.alignments, "right");
 					else
-						table.insert(data.alignments, config.active.table_align or "left");
+						table.insert(data.alignments, config.active.markdown.tables.default_alignment or "left");
 					end
 				end
 			end
@@ -641,7 +641,7 @@ markdown.paragraph = function (buffer, _, TSNode)
 	lines[1] = string.gsub(lines[1], "^::%w+::", "");
 
 	local before = vim.api.nvim_buf_get_text(buffer, R[1], 0, R[1], R[2], {})[1];
-	local W = (config.active.textwidth or 80) - vim.fn.strdisplaywidth(before or "");
+	local W = (config.active.generic.textwidth or 80) - vim.fn.strdisplaywidth(before or "");
 
 	local aligned = {}
 

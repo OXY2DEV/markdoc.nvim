@@ -14,16 +14,13 @@ end
 
 ---@type markdoc.config
 config.default = {
-	textwidth = 80,
-	indent = 4,
-
-	heading_ratio = { 6, 4 },
-
 	generic = {
 		textwidth = 80,
 		indent = 4,
 	},
 	markdown = {
+		heading_ratio = { 6, 4 },
+
 		use_link_refs = true,
 		link_url_modifiers = {
 			-- {
@@ -154,26 +151,37 @@ config.default = {
 			---|fE
 		},
 
+		code_blocks = {
+			indentation = "\t"
+		},
+
 		tags = {
 			-- default = { "a", "b", "c" }
 		},
 
+		tables = {
+			max_col_size = 20,
+			preserve_whitespace = true,
+			default_alignment = "left",
+
+			borders = {
+				header = { "│", "│", "│" },
+				row = { "│", "│", "│" },
+
+				separator = { "├", "─", "┤", "┼" },
+				row_separator = { "├", "─", "┤", "┼" },
+
+				top = { "╭", "─", "╮", "┬" },
+				bottom = { "╰", "─", "╯", "┴" },
+			},
+		},
+
+		list_items = {
+			-- marker_plus = "•",
+		}
+
 		---|fE
 	},
-
-	table_borders = {
-		header = { "│", "│", "│", "│" },
-		separator = { "├", "─", "┤", "┼" },
-		row = { "│", "│", "│", "│" },
-		row_separator = { "├", "─", "┤", "┼" },
-
-		top = { "╭", "─", "╮", "┬" },
-		bottom = { "╰", "─", "╯", "┴" },
-	},
-	list_items = {
-		indent_size = 4,
-		shift_width = 4
-	}
 };
 
 ---@type markdoc.config
