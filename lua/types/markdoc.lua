@@ -27,4 +27,22 @@
 ---
 ---@field textwidth? integer Text width of the help file.
 ---@field indent? integer Number of spaces to use for indentation.
+---
+---@field toc markdoc.config.generic.toc
+
+
+---@class markdoc.config.generic.toc
+---
+---@field enabled? boolean
+---
+---@field heading? string
+---@field heading_level? integer
+---
+---@field entries generic.toc.entry[]
+
+
+---@class generic.toc.entry
+---
+---@field text string
+---@field tag string
 

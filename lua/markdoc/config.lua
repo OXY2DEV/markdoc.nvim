@@ -17,6 +17,18 @@ config.default = {
 	generic = {
 		textwidth = 80,
 		indent = 4,
+
+		toc = {
+			enabled = true,
+
+			heading = nil,
+			heading_level = 2,
+
+			entries = {
+				-- { text = "Hello world", tag = "hi" },
+				-- { text = "Hello world This is soms very looong text to show to the usrr", tag = "hi" },
+			},
+		},
 	},
 	markdown = {
 		heading_ratio = { 6, 4 },

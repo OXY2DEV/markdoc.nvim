@@ -328,6 +328,49 @@ html.clear_ignore = function (buffer, _, TSNode)
 	---|fE
 end
 
+---@param buffer integer
+---@param TSNode TSNode
+html.toc = function (buffer, _, TSNode)
+	---|fS
+
+	local format = require("markdoc.format");
+	local config = require("markdoc.config");
+
+	local toc = config.active.generic.toc;
+
+	if toc.enabled == false or #toc.entries == 0 then
+		local R = { TSNode:range() };
+		vim.api.nvim_buf_set_lines(buffer, R[1], R[1] + 1, false, {});
+		return;
+	end
+
+	local textwidth = config.active.generic.textwidth or 80;
+	local lines = {};
+
+	table.insert(lines, string.rep("#", toc.heading_level or 1) .. " " .. (toc.heading or "Table of contents"));
+	table.insert(lines, "");
+
+	local text_W = math.floor(textwidth * 0.6);
+
+	for _, entry in ipairs(toc.entries) do
+		local formatted = format.format(entry.text or "", text_W);
+
+		for f, line in ipairs(formatted) do
+			if f < #formatted then
+				table.insert(lines, line);
+			else
+				local used = vim.fn.strdisplaywidth(line .. "|" .. entry.tag .. "|") + 2;
+				table.insert(lines, line .. " " .. string.rep(".", textwidth - used) .. " |" .. entry.tag .. "|");
+			end
+		end
+	end
+
+	local R = { TSNode:range() };
+	vim.api.nvim_buf_set_lines(buffer, R[1], R[1] + 1, false, lines);
+
+	---|fE
+end
+
 ---@type markdoc.rule[]
 html.rules = {
 	{ '((comment) @comment (#lua-match? @comment "^%<!%-%-%s*markdoc%s+"))', html.config },
@@ -350,6 +393,8 @@ html.rules = {
 	{ '(element (start_tag ((tag_name) @tag_name (#any-of? @tag_name "img")) )) @image', html.image },
 
 	{ '(element (end_tag ((tag_name) @tag_name (#lua-match? @tag_name "^kbd$")) )) @keycode', html.keycode },
+
+	{ '((self_closing_tag) @toc (#any-of? @toc "<TOC/>"))', html.toc },
 };
 
 --[[ Provides text transformation for `HTML` to `markdown`. ]]
