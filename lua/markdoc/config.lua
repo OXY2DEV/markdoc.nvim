@@ -12,14 +12,25 @@ config.eval = function (val, ...)
 	end
 end
 
+---@type markdoc.config
 config.default = {
 	textwidth = 80,
 	indent = 4,
 
 	heading_ratio = { 6, 4 },
 
+	generic = {
+		textwidth = 80,
+		indent = 4,
+	},
 	markdown = {
-		use_link_refs = true
+		use_link_refs = true,
+		link_url_modifiers = {
+			-- {
+			-- 	"^#",
+			-- 	function () end
+			-- }
+		},
 	},
 
 	table_borders = {
@@ -50,6 +61,7 @@ config.default = {
 	}
 };
 
+---@type markdoc.config
 config.active = vim.deepcopy(config.default, true);
 
 config.block_quote = function (leader)
@@ -87,12 +99,41 @@ config.get_tags = function (text)
 	return config.eval(config.active.tags.default, text);
 end
 
+--- Modifies URL.
+---@param buffer integer
+---@param description string
+---@param destination string
+---@return string
 config.modify_url = function (buffer, description, destination)
-	if not config.active.markdown.url_modifier then
+	---|fS
+
+	if not config.active.markdown.link_url_modifiers or #config.active.markdown.link_url_modifiers == 0 then
 		return destination;
 	end
 
-	return destination;
+	local output = destination;
+
+	for _, entry in ipairs(config.active.markdown.link_url_modifiers) do
+		if string.match(destination, entry[1]) then
+			if type(entry[2]) == "string" then
+				---@cast entry [ string, string ]
+				output = entry[2];
+			else
+				---@cast entry [ string, fun (description: string, destination: string): string ]
+				local can_eval, evaled = pcall(entry[2], description, destination);
+
+				if can_eval then
+					output = evaled;
+				end
+			end
+
+			break;
+		end
+	end
+
+	return output;
+
+	---|fE
 end
 
 --[[ Should a link use a `reference` or the `URL`? ]]
@@ -105,10 +146,10 @@ config.use_refs = function (description, destination)
 	if config.active.markdown.use_link_refs == nil then
 		return false;
 	elseif type(config.active.markdown.use_link_refs) == "boolean" then
-		return config.active.markdown.use_link_refs;
+		return config.active.markdown.use_link_refs --[[@as boolean]];
 	end
 
-	local can_eval, evaled = pcall(config.active.markdown.use_link_refs, description, destination)
+	local can_eval, evaled = pcall(config.active.markdown.use_link_refs --[[@as function]], description, destination)
 
 	if can_eval then
 		return evaled == true;
