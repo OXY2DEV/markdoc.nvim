@@ -672,6 +672,53 @@ markdown.paragraph_nested = function (buffer, _, TSNode)
 	end
 end
 
+---@param buffer integer
+---@param TSNode TSNode
+markdown.list_marker = function (buffer, _, TSNode)
+	---|fS
+
+	local R = range(buffer, TSNode);
+	local modified;
+
+	if TSNode:type() == "list_marker_minus" then
+		modified = config.active.markdown.list_items.marker_minus;
+	elseif TSNode:type() == "list_marker_plus" then
+		modified = config.active.markdown.list_items.marker_plus;
+	elseif TSNode:type() == "list_marker_star" then
+		modified = config.active.markdown.list_items.marker_star;
+	elseif TSNode:type() == "list_marker_dot" then
+		modified = config.active.markdown.list_items.marker_dot;
+	end
+
+	local text = vim.treesitter.get_node_text(TSNode, buffer, {});
+	local after = string.match(text, "[ \t]*$");
+
+	-- NOTE: List markers contain spaces after them(e.g. `-  `).
+	R[4] = R[4] - #after;
+
+	if not modified then
+		return;
+	elseif string.match(modified, "%%d") then
+		local prev_sibling = TSNode:parent():prev_named_sibling();
+		local N = 1;
+
+		while prev_sibling do
+			if prev_sibling:type() ~= "list_item" then
+				break;
+			end
+
+			N = N + 1;
+			prev_sibling = prev_sibling:prev_named_sibling();
+		end
+
+		modified = string.format(modified, N)
+	end
+
+	vim.api.nvim_buf_set_text(buffer, R[1], R[2], R[3], R[4], { modified });
+
+	---|fE
+end
+
 markdown.pre_rule = {
 	{ "(atx_heading) @atx", markdown.atx_heading }
 };
@@ -685,6 +732,7 @@ markdown.post_rule = {
 	{ '((paragraph) @paragraph (#lua-match? @paragraph "^::%w+::"))', markdown.paragraph_nested },
 	{ "(atx_heading) @atx", markdown.atx_h3 },
 
+	{ "[ (list_marker_minus) (list_marker_plus) ] @item", markdown.list_marker },
 	{ "(pipe_table) @table", markdown.table },
 	{ "(block_quote) @block", markdown.block_quote },
 	{ "(indented_code_block) @code_block", markdown.indented_code_block },
