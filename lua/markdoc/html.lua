@@ -1,3 +1,4 @@
+-- `HTML` to `markdown` converter for `markdoc`.
 local html = {};
 
 ---@param buffer integer
@@ -44,6 +45,45 @@ local function normalize (buffer, TSNode, inline)
 	---|fE
 end
 
+--[[
+Turns a `comment` into a configuration table.
+
+The comment is parsed as `JSON`.
+
+Source:
+
+```html
+<!--markdoc { "foo": "bar" } -->
+```
+
+Result:
+
+```lua
+require("markdoc").setup({ foo = "bar" });
+```
+]]
+---@param buffer integer
+---@param TSNode TSNode
+html.config = function (buffer, _, TSNode)
+	---|fS
+
+	local text = vim.treesitter.get_node_text(TSNode, buffer, {});
+	text = string.gsub(text, "^<!%-%-%s*markdoc", "");
+	text = string.gsub(text, "%-%->$", "");
+
+	local JSON = vim.json.decode(text);
+
+	local config = require("markdoc.config");
+
+	config.last = vim.deepcopy(config.active);
+	config.active = vim.tbl_deep_extend("force", config.active, JSON);
+
+	html.comment(buffer, _, TSNode);
+
+	---|fE
+end
+
+-- Removes `comments` from document.
 ---@param buffer integer
 ---@param TSNode TSNode
 html.comment = function (buffer, _, TSNode)
@@ -55,6 +95,21 @@ html.comment = function (buffer, _, TSNode)
 	---|fE
 end
 
+--[[
+Converts `HTML headings` to `ATX headings`.
+
+Source:
+
+```html
+<h1>Hello world</h1>
+```
+
+Result:
+
+```markdown
+# Hello world
+```
+]]
 ---@param buffer integer
 ---@param TSNode TSNode
 html.heading = function (buffer, _, TSNode)
@@ -84,6 +139,7 @@ html.heading = function (buffer, _, TSNode)
 	---|fE
 end
 
+-- Turns **bold tags**(`<b>Bold</b>`) into **bold text**(`**Bold**`).
 ---@param buffer integer
 ---@param TSNode TSNode
 html.bold = function (buffer, _, TSNode)
@@ -100,6 +156,7 @@ html.bold = function (buffer, _, TSNode)
 	---|fE
 end
 
+-- Turns **italic tags**(`<i>Italic</i>`) into **italic text**(`*Italic*`).
 ---@param buffer integer
 ---@param TSNode TSNode
 html.italic = function (buffer, _, TSNode)
@@ -116,13 +173,21 @@ html.italic = function (buffer, _, TSNode)
 	---|fE
 end
 
+-- Turns **anchor tags**(`<a href="foo">Link</a>`) into **inline link**(`[Link](foo)`).
 ---@param buffer integer
 ---@param TSNode TSNode
 html.anchor = function (buffer, _, TSNode)
 	---|fS
 
+	local text = vim.treesitter.get_node_text(TSNode, buffer, {});
+	local href = string.match(text, 'href="(.-)"');
+
 	local normal = normalize(buffer, TSNode);
-	-- normal = "*" .. string.gsub(normal, "%s", "") .. "*";
+	normal = "[" .. normal .. "]";
+
+	if href then
+		normal = normal .. string.format("(%s)", href);
+	end
 
 	local lines = vim.fn.split(normal, "\n");
 
@@ -132,6 +197,7 @@ html.anchor = function (buffer, _, TSNode)
 	---|fE
 end
 
+-- Turns **image tags**(`<img src="foo" alt="Link">`) into **image link**(`![Link](foo)`).
 ---@param buffer integer
 ---@param TSNode TSNode
 html.image = function (buffer, _, TSNode)
@@ -147,11 +213,14 @@ html.image = function (buffer, _, TSNode)
 	local alt = string.match(tag, 'alt="([^"]+)"');
 
 	local R = { TSNode:range() };
-	vim.api.nvim_buf_set_text(buffer, R[1], R[2], R[1], -1, { alt or "Image" });
+	vim.api.nvim_buf_set_text(buffer, R[1], R[2], R[1], -1, {
+		string.format("![%s]", alt or "Image") .. (src and string.format("(%s)", src) or "")
+	});
 
 	---|fE
 end
 
+-- Turns **keyboard-input elements**(`<kbd>C-Space</kbd>`) into **keycodes**(`<C-Space>`).
 ---@param buffer integer
 ---@param TSNode TSNode
 html.keycode = function (buffer, _, TSNode)
@@ -168,6 +237,11 @@ html.keycode = function (buffer, _, TSNode)
 	---|fE
 end
 
+--[[
+Turns **paragraph elements**(`<p align="center">foo</p>`) into **aligned paragraph**(`::center::foo`).
+
+NOTE: This is also used for **div**s(`<div align="center">foo</div>`).
+]]
 ---@param buffer integer
 ---@param TSNode TSNode
 html.paragraph = function (buffer, _, TSNode)
@@ -192,6 +266,7 @@ html.paragraph = function (buffer, _, TSNode)
 	---|fE
 end
 
+-- Removes `<details></details>` tags.
 ---@param buffer integer
 ---@param TSNode TSNode
 html.details = function (buffer, _, TSNode)
@@ -206,6 +281,7 @@ html.details = function (buffer, _, TSNode)
 	---|fE
 end
 
+-- Turns `<summary></summary>` tags into level 3 `ATX headings`.
 ---@param buffer integer
 ---@param TSNode TSNode
 html.summary = function (buffer, _, TSNode)
@@ -222,7 +298,9 @@ html.summary = function (buffer, _, TSNode)
 	---|fE
 end
 
+---@type markdoc.rule[]
 html.rules = {
+	{ '((comment) @comment (#lua-match? @comment "^%<!%-%-%s*markdoc"))', html.config },
 	{ "(comment) @comment", html.comment },
 
 	{ '(element (end_tag ((tag_name) @tag_name (#lua-match? @tag_name "^h%d+$")) )) @heading', html.heading },
@@ -235,12 +313,18 @@ html.rules = {
 	{ '(element (end_tag ((tag_name) @tag_name (#any-of? @tag_name "b" "bold" "em" "emphasis")) )) @bold', html.bold },
 	{ '(element (end_tag ((tag_name) @tag_name (#any-of? @tag_name "i" "italic")) )) @italic', html.italic },
 	{ '(element (end_tag ((tag_name) @tag_name (#any-of? @tag_name "a")) )) @anchor', html.anchor },
-	{ '(element . (start_tag ((tag_name) @tag_name (#any-of? @tag_name "img")) ) .) @image', html.image },
+	{ '(element (start_tag ((tag_name) @tag_name (#any-of? @tag_name "img")) )) @image', html.image },
 
 	{ '(element (end_tag ((tag_name) @tag_name (#lua-match? @tag_name "^kbd$")) )) @keycode', html.keycode },
 };
 
+--[[ Provides text transformation for `HTML` to `markdown`. ]]
+---@param TSTree TSTree
+---@param buffer integer
+---@param rule markdoc.rule
 html.transform = function (TSTree, buffer, rule)
+	---|fS
+
 	local query = vim.treesitter.query.parse("html", rule[1]);
 	local stack = {};
 
@@ -254,9 +338,15 @@ html.transform = function (TSTree, buffer, rule)
 			pcall(rule[2], buffer, item[1], item[2])
 		-- )
 	end
+
+	---|fE
 end
 
+--[[ Walks/Parses `buffer` and transforms `HTML`. ]]
+---@param buffer integer
 html.walk = function (buffer)
+	---|fS
+
 	for _, rule in ipairs(html.rules) do
 		local root_parser = vim.treesitter.get_parser(buffer);
 
@@ -274,6 +364,8 @@ html.walk = function (buffer)
 			end
 		end);
 	end
+
+	---|fE
 end
 
 return html;
