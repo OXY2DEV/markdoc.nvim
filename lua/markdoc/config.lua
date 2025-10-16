@@ -18,6 +18,10 @@ config.default = {
 
 	heading_ratio = { 6, 4 },
 
+	markdown = {
+		use_link_refs = true
+	},
+
 	table_borders = {
 		header = { "│", "│", "│", "│" },
 		separator = { "├", "─", "┤", "┼" },
@@ -60,7 +64,6 @@ config.block_quote = function (leader)
 
 	for _, key in ipairs(keys) do
 		if string.match(callout, key) then
-			vim.print(callout)
 			return config.eval(config.active.block_quotes[key], callout), true;
 		end
 	end
@@ -82,6 +85,38 @@ config.get_tags = function (text)
 	end
 
 	return config.eval(config.active.tags.default, text);
+end
+
+config.modify_url = function (buffer, description, destination)
+	if not config.active.markdown.url_modifier then
+		return destination;
+	end
+
+	return destination;
+end
+
+--[[ Should a link use a `reference` or the `URL`? ]]
+---@param description string
+---@param destination string
+---@return boolean
+config.use_refs = function (description, destination)
+	---|fS
+
+	if config.active.markdown.use_link_refs == nil then
+		return false;
+	elseif type(config.active.markdown.use_link_refs) == "boolean" then
+		return config.active.markdown.use_link_refs;
+	end
+
+	local can_eval, evaled = pcall(config.active.markdown.use_link_refs, description, destination)
+
+	if can_eval then
+		return evaled == true;
+	else
+		return false;
+	end
+
+	---|fE
 end
 
 config.setup = function (new)
