@@ -161,6 +161,25 @@ inline.image = function (buffer, _, TSNode)
 	---|fE
 end
 
+---@param buffer integer
+---@param TSNode TSNode
+inline.autolink = function (buffer, _, TSNode)
+	---|fS
+
+	local text = vim.treesitter.get_node_text(TSNode, buffer, {});
+
+	text = string.gsub(text, "%s", "");
+	text = string.gsub(text, "^%<", "");
+	text = string.gsub(text, "%>$", "");
+
+	local ref = link_ref("link", buffer, "", text);
+
+	local R = { TSNode:range() };
+	vim.api.nvim_buf_set_text(buffer, R[1], R[2], R[3], R[4], { ref });
+
+	---|fE
+end
+
 inline.rule_map = {
 	{ "(strong_emphasis) @bold", inline.bold },
 	{ "(emphasis) @italic", inline.bold },
@@ -169,7 +188,8 @@ inline.rule_map = {
 	{ "(full_reference_link  (link_text)  (link_label)) @link", inline.full_reference_link },
 	{ "(shortcut_link) @link", inline.shortcut_link },
 
-	{ "(image) @link", inline.image },
+	{ "(image) @image", inline.image },
+	{ "[ (email_autolink) (uri_autolink) ] @autolink", inline.autolink },
 };
 
 inline.transform = function (TSTree, buffer, rule)
