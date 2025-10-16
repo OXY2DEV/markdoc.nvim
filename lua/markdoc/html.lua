@@ -46,6 +46,17 @@ end
 
 ---@param buffer integer
 ---@param TSNode TSNode
+html.comment = function (buffer, _, TSNode)
+	---|fS
+
+	local R = { TSNode:range() };
+	vim.api.nvim_buf_set_text(buffer, R[1], R[2], R[3], R[4], { "" });
+
+	---|fE
+end
+
+---@param buffer integer
+---@param TSNode TSNode
 html.heading = function (buffer, _, TSNode)
 	---|fS
 
@@ -101,6 +112,42 @@ html.italic = function (buffer, _, TSNode)
 
 	local R = { TSNode:range() };
 	vim.api.nvim_buf_set_text(buffer, R[1], R[2], R[3], R[4], lines);
+
+	---|fE
+end
+
+---@param buffer integer
+---@param TSNode TSNode
+html.anchor = function (buffer, _, TSNode)
+	---|fS
+
+	local normal = normalize(buffer, TSNode);
+	-- normal = "*" .. string.gsub(normal, "%s", "") .. "*";
+
+	local lines = vim.fn.split(normal, "\n");
+
+	local R = { TSNode:range() };
+	vim.api.nvim_buf_set_text(buffer, R[1], R[2], R[3], R[4], lines);
+
+	---|fE
+end
+
+---@param buffer integer
+---@param TSNode TSNode
+html.image = function (buffer, _, TSNode)
+	---|fS
+
+	if TSNode:type() ~= "element" then
+		return;
+	end
+
+	local tag = vim.treesitter.get_node_text(TSNode, buffer, {});
+
+	local src = string.match(tag, 'src="([^"]+)"');
+	local alt = string.match(tag, 'alt="([^"]+)"');
+
+	local R = { TSNode:range() };
+	vim.api.nvim_buf_set_text(buffer, R[1], R[2], R[1], -1, { alt or "Image" });
 
 	---|fE
 end
@@ -176,14 +223,19 @@ html.summary = function (buffer, _, TSNode)
 end
 
 html.rules = {
+	{ "(comment) @comment", html.comment },
+
 	{ '(element (end_tag ((tag_name) @tag_name (#lua-match? @tag_name "^h%d+$")) )) @heading', html.heading },
 	{ '(element (end_tag ((tag_name) @tag_name (#lua-match? @tag_name "^p$")) )) @paragraph', html.paragraph },
+	{ '(element (end_tag ((tag_name) @tag_name (#lua-match? @tag_name "^div$")) )) @div', html.paragraph },
 
 	{ '(element (end_tag ((tag_name) @tag_name (#lua-match? @tag_name "^summary$")) )) @summary', html.summary },
 	{ '(element (end_tag ((tag_name) @tag_name (#lua-match? @tag_name "^details$")) )) @details', html.details },
 
 	{ '(element (end_tag ((tag_name) @tag_name (#any-of? @tag_name "b" "bold" "em" "emphasis")) )) @bold', html.bold },
 	{ '(element (end_tag ((tag_name) @tag_name (#any-of? @tag_name "i" "italic")) )) @italic', html.italic },
+	{ '(element (end_tag ((tag_name) @tag_name (#any-of? @tag_name "a")) )) @anchor', html.anchor },
+	{ '(element . (start_tag ((tag_name) @tag_name (#any-of? @tag_name "img")) ) .) @image', html.image },
 
 	{ '(element (end_tag ((tag_name) @tag_name (#lua-match? @tag_name "^kbd$")) )) @keycode', html.keycode },
 };
