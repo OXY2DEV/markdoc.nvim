@@ -49,7 +49,10 @@ markdoc.convert_buffer = function (buffer, use)
 
 	if config.active.generic.filename then
 		vim.api.nvim_buf_call(new, function ()
-			vim.cmd("write " .. config.active.generic.filename);
+			vim.cmd(
+				(config.active.generic.force_write and "write! " or "write ") ..
+				config.active.generic.filename
+			);
 		end);
 	else
 		local opts = vim.tbl_extend("force", { split = "right" }, config.active.generic.winopts or {});
@@ -99,7 +102,10 @@ markdoc.convert_file = function (path, use)
 
 	if config.active.generic.filename then
 		vim.api.nvim_buf_call(new, function ()
-			vim.cmd("write " .. config.active.generic.filename);
+			vim.cmd(
+				(config.active.generic.force_write and "write! " or "write ") ..
+				config.active.generic.filename
+			);
 		end);
 	else
 		local opts = vim.tbl_extend("force", { split = "right" }, config.active.generic.winopts or {});

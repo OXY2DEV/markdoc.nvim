@@ -10,6 +10,7 @@
 ---@class markdoc.config.generic
 ---
 ---@field filename? string Name of help file.
+---@field force_write? boolean Should `:write!` be used instead of `:write`?
 ---@field winopts? table Window options for the previewer.
 ---
 ---@field textwidth? integer Text width of the help file.

@@ -1,6 +1,8 @@
 <!--markdoc
     {
         "generic": {
+            "filename": "doc/markdoc.nvim.txt",
+            "force_write": true,
             "header": {
                 "desc": "Tree-sitter based `Markdown -> Vimdoc` converter for Neovim",
                 "tag": "markdoc.nvim"
