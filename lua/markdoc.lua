@@ -45,6 +45,19 @@ markdoc.convert_buffer = function (buffer, use)
 	require("markdoc.markdown_inline").walk(new);
 	require("markdoc.markdown").walk(new);
 
+	local config = require("markdoc.config");
+
+	if config.active.generic.filename then
+		vim.api.nvim_buf_call(new, function ()
+			vim.cmd("write " .. config.active.generic.filename);
+		end);
+	else
+		local opts = vim.tbl_extend("force", { split = "right" }, config.active.generic.winopts or {});
+		vim.api.nvim_open_win(new, true, opts);
+
+		return nil;
+	end
+
 	return new;
 
 	---|fE
@@ -82,6 +95,19 @@ markdoc.convert_file = function (path, use)
 	require("markdoc.markdown_inline").walk(new);
 	require("markdoc.markdown").walk(new);
 
+	local config = require("markdoc.config");
+
+	if config.active.generic.filename then
+		vim.api.nvim_buf_call(new, function ()
+			vim.cmd("write " .. config.active.generic.filename);
+		end);
+	else
+		local opts = vim.tbl_extend("force", { split = "right" }, config.active.generic.winopts or {});
+		vim.api.nvim_open_win(new, true, opts);
+
+		return nil;
+	end
+
 	return new;
 
 	---|fE
@@ -103,10 +129,6 @@ markdoc.setup = function ()
 			else
 				use = markdoc.convert_file(arg, use);
 			end
-		end
-
-		if use then
-			vim.api.nvim_open_win(use, false, { split = "right" });
 		end
 	end, {
 		desc = "Convert `markdown` to `vimdoc`",

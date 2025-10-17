@@ -10,6 +10,7 @@
 ---@class markdoc.config.generic
 ---
 ---@field filename? string Name of help file.
+---@field winopts? table Window options for the previewer.
 ---
 ---@field textwidth? integer Text width of the help file.
 ---@field indent? integer Number of spaces to use for indentation.
