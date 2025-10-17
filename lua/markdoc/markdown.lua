@@ -765,7 +765,7 @@ markdown.header = function (buffer)
 	local header = config.active.generic.header;
 	local textwidth = config.active.generic.textwidth or 80;
 
-	if header.enabled == false then
+	if header.enabled == false or ( not header.desc and not header.tag ) then
 		return;
 	end
 
@@ -813,7 +813,68 @@ markdown.footer = function (buffer)
 	---|fE
 end
 
+---@param buffer integer
+markdown.links = function (buffer)
+	---|fS
+
+	local link_config = config.active.generic.links;
+	local links = require("markdoc.links");
+
+	if link_config.enabled == false or #(links.urls[buffer] or {}) then
+		return;
+	end
+
+	local lines = {};
+
+	table.insert(lines, "");
+	table.insert(lines, link_config.desc or "Links ~" );
+
+	for l, link in ipairs(links.urls[buffer] or {}) do
+		local index = string.format(link_config.list_marker or "%d:", l);
+		local url = string.format(link_config.url_format or " %s", link);
+
+		table.insert(lines, index .. url);
+	end
+
+	table.insert(lines, "");
+	vim.api.nvim_buf_set_lines(buffer, -1, -1, false, lines);
+
+	---|fE
+end
+
+---@param buffer integer
+markdown.images = function (buffer)
+	---|fS
+
+	local image_config = config.active.generic.images;
+	local links = require("markdoc.links");
+
+	if image_config.enabled == false or #(links.urls[buffer] or {}) == 0 then
+		return;
+	end
+
+	local lines = {};
+
+	table.insert(lines, image_config.desc or "Images ~");
+
+	for l, link in ipairs(links.urls[buffer] or {}) do
+		local index = string.format(image_config.list_marker or "%d:", l);
+		local url = string.format(image_config.url_format or " %s", link);
+
+		table.insert(lines, index .. url);
+	end
+
+	table.insert(lines, "");
+	vim.api.nvim_buf_set_lines(buffer, -1, -1, false, lines);
+
+	---|fE
+end
+
+-- Walks & transforms `buffer` into `vimdoc`.
+---@param buffer integer
 markdown.walk = function (buffer)
+	---|fS
+
 	markdown.ignore_lines = {};
 
 	for _, rule in ipairs(markdown.pre_rule) do
@@ -853,9 +914,13 @@ markdown.walk = function (buffer)
 	end
 
 	markdown.header(buffer);
+	markdown.links(buffer);
+	markdown.images(buffer);
 	markdown.footer(buffer);
 
 	vim.bo[buffer].ft = "vimdoc";
+
+	---|fE
 end
 
 return markdown;

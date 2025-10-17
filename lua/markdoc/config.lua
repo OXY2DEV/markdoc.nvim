@@ -19,6 +19,8 @@ config.default = {
 		indent = 4,
 
 		header = {},
+		links = {},
+		images = {},
 
 		toc = {
 			enabled = true,

@@ -17,6 +17,8 @@
 ---@field indent? integer Number of spaces to use for indentation.
 ---
 ---@field header markdoc.config.generic.header
+---@field links markdoc.config.generic.links
+---@field images markdoc.config.generic.links
 ---@field toc markdoc.config.generic.toc
 
 
@@ -30,6 +32,15 @@
 ---@field author? string[] Author(s) of the help file.
 ---@field version? string Version string.
 ---@field last_modified? boolean Should the last modification date be shown?
+
+
+---@class markdoc.config.generic.links
+---
+---@field enabled? boolean
+---@field desc? string Short description to show at top of link section.
+---
+---@field list_marker? string
+---@field url_format? string
 
 
 ---@class markdoc.config.generic.toc
