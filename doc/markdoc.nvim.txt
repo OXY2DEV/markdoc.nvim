@@ -1,0 +1,17 @@
+*markdoc.nvim*       Tree-sitter based `Markdown -> Vimdoc` converter for Neovim
+
+                                    Image {1}                                   
+
+--------------------------------------------------------------------------------
+🪄 Features                                              *markdoc.nvim-features*
+
+- Support for basic `markdown`.
+- Support for HTML.
+- Support for aligned text(via `<p align=""></p>` or `<div align=""></div>`)
+- Custom Table of contents.
+- Custom header.
+- Ability to configure per filetype(using `JSON`).
+
+
+
+vim:ft=vimdoc:textwidth=80:tabstop=4:noexpandtab:
