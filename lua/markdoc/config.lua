@@ -18,6 +18,8 @@ config.default = {
 		textwidth = 80,
 		indent = 4,
 
+		header = {},
+
 		toc = {
 			enabled = true,
 

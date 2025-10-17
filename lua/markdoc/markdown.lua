@@ -758,6 +758,61 @@ markdown.transform = function (TSTree, buffer, rule)
 	end
 end
 
+---@param buffer integer
+markdown.header = function (buffer)
+	---|fS
+
+	local header = config.active.generic.header;
+	local textwidth = config.active.generic.textwidth or 80;
+
+	if header.enabled == false then
+		return;
+	end
+
+	local tag = { header.tag and "*" .. header.tag .. "*" or nil };
+	local tag_w = vim.fn.strdisplaywidth(tag[1] or "");
+
+	local formatted = format.format(header.desc or "", textwidth - tag_w);
+
+	local lines = merge_cols({
+		alignment = "left",
+		lines = tag,
+		width = tag_w
+	}, {
+		alignment = "right",
+		lines = formatted,
+		width = textwidth - tag_w
+	});
+
+	if header.last_modified then
+		table.insert(lines, align(os.date() --[[@as string]], textwidth, "right"))
+	end
+
+	if header.author then
+		table.insert(lines, align(header.author --[[@as string]], textwidth, "right"))
+	end
+
+	if header.version then
+		table.insert(lines, align(header.version --[[@as string]], textwidth, "right"))
+	end
+
+	vim.api.nvim_buf_set_lines(buffer, 0, 0, false, lines);
+
+	---|fE
+end
+
+---@param buffer integer
+markdown.footer = function (buffer)
+	---|fS
+
+	vim.api.nvim_buf_set_lines(buffer, -1, -1, false, {
+		"",
+		string.format("vim:ft=vimdoc:textwidth=%d:tabstop=%d:noexpandtab:", config.active.generic.textwidth or 80, config.active.generic.indent or 4)
+	});
+
+	---|fE
+end
+
 markdown.walk = function (buffer)
 	markdown.ignore_lines = {};
 
@@ -797,6 +852,10 @@ markdown.walk = function (buffer)
 		end);
 	end
 
+	markdown.header(buffer);
+	markdown.footer(buffer);
+
+	vim.bo[buffer].ft = "vimdoc";
 	vim.api.nvim_open_win(buffer, false, { split = "right" });
 end
 
