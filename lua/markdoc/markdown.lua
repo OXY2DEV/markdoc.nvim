@@ -856,7 +856,6 @@ markdown.walk = function (buffer)
 	markdown.footer(buffer);
 
 	vim.bo[buffer].ft = "vimdoc";
-	vim.api.nvim_open_win(buffer, false, { split = "right" });
 end
 
 return markdown;

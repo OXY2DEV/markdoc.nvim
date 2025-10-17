@@ -72,7 +72,7 @@ end
 format.format = function (line, width, leader)
 	---|fS
 
-	width = width or config.active.textwidth;
+	width = width or config.active.generic.textwidth or 80;
 
 	local parsed = format.parse(line);
 	local output = { "" };
