@@ -6,12 +6,6 @@
 ---@field [2] fun(buffer: integer, match: string, TSNode: TSNode): nil Function to run on the captures of `query`.
 
 
----@class markdoc.config
----
----@field generic markdoc.config.generic
----@field markdown markdoc.config.markdown
-
-
 -- Generic options for controlling help file generation.
 ---@class markdoc.config.generic
 ---
