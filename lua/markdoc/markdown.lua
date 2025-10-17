@@ -446,7 +446,7 @@ markdown.table = function (buffer, _, TSNode)
 	---@param col TSNode
 	local function width (col)
 		local text = vim.treesitter.get_node_text(col, buffer, {});
-		return math.min(config.active.markdown.tables.max_col_size or 20, vim.fn.strdisplaywidth(text));
+		return math.min(config.active.markdown.tables.max_col_size or 40, vim.fn.strdisplaywidth(text));
 	end
 
 	--[[ Creates a border(*optionally* with given text). ]]
@@ -458,10 +458,11 @@ markdown.table = function (buffer, _, TSNode)
 
 		---@type markdown.tables.border
 		local borders = vim.tbl_extend("keep", config.active.markdown.tables.borders or {}, {
-			header = { "|", "", "|", "|" },
 			separator = { "", "", "", "" },
-			row = { "", "", "", "" },
 			row_seperator = {},
+
+			header = { "|", "", "|" },
+			row = { "", "", ""},
 
 			top = { "/", "-", "}", "|" },
 			bottom = { "{", "-", "//", "|" },
@@ -486,7 +487,7 @@ markdown.table = function (buffer, _, TSNode)
 			end
 
 			if c < #col_widths then
-				output = output .. (this_border[4] or "");
+				output = output .. (this_border[4] or this_border[3] or "");
 			else
 				output = output .. (this_border[3] or "");
 			end
@@ -567,7 +568,7 @@ markdown.table = function (buffer, _, TSNode)
 		local L = 0;
 
 		for c, col in ipairs(row) do
-			local formatted = format.format(col, col_widths[c] - 2);
+			local formatted = format.format(col, col_widths[c] - 2, nil, true);
 			L = math.max(L, #formatted);
 
 			table.insert(formatted_row, formatted);
