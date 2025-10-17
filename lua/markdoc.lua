@@ -11,7 +11,8 @@ local markdoc = {};
 
 --[[ Converts `buffer` into `vimdoc`. ]]
 ---@param buffer? integer
-markdoc.convert_buffer = function (buffer)
+---@param use? integer
+markdoc.convert_buffer = function (buffer, use)
 	---|fS
 
 	buffer = buffer or vim.api.nvim_get_current_buf();
@@ -20,7 +21,15 @@ markdoc.convert_buffer = function (buffer)
 		return;
 	end
 
-	local new = vim.api.nvim_create_buf(false, true);
+	---@type integer
+	local new;
+
+	if use and vim.api.nvim_buf_is_valid(use) then
+		new = use;
+	else
+		new = vim.api.nvim_create_buf(false, true);
+	end
+
 	vim.bo[new].ft = "markdown";
 
 	vim.api.nvim_buf_set_lines(
@@ -36,13 +45,74 @@ markdoc.convert_buffer = function (buffer)
 	require("markdoc.markdown_inline").walk(new);
 	require("markdoc.markdown").walk(new);
 
+	return new;
+
+	---|fE
+end
+
+--[[ Converts `buffer` into `vimdoc`. ]]
+---@param path string
+---@param use? integer
+markdoc.convert_file = function (path, use)
+	---|fS
+
+	---@type integer
+	local new;
+
+	if use and vim.api.nvim_buf_is_valid(use) then
+		new = use;
+	else
+		new = vim.api.nvim_create_buf(false, true);
+	end
+
+	local file = vim.fn.readfile(path);
+
+	vim.bo[new].ft = "markdown";
+
+	vim.api.nvim_buf_set_lines(
+		new,
+		0,
+		-1,
+		false,
+
+		file
+	);
+
+	require("markdoc.html").walk(new);
+	require("markdoc.markdown_inline").walk(new);
+	require("markdoc.markdown").walk(new);
+
+	return new;
+
 	---|fE
 end
 
 markdoc.setup = function ()
-	vim.api.nvim_create_user_command("Doc", function ()
-		markdoc.convert_buffer();
-	end, {});
+	vim.api.nvim_create_user_command("Doc", function (data)
+		local fargs = data.fargs;
+
+		if #fargs == 0 then
+			table.insert(fargs, vim.api.nvim_get_current_buf());
+		end
+
+		local use;
+
+		for _, arg in ipairs(fargs) do
+			if tonumber(arg) then
+				use = markdoc.convert_buffer(tonumber(arg), use);
+			else
+				use = markdoc.convert_file(arg, use);
+			end
+		end
+
+		if use then
+			vim.api.nvim_open_win(use, false, { split = "right" });
+		end
+	end, {
+		desc = "Convert `markdown` to `vimdoc`",
+		nargs = "*",
+		complete = "file"
+	});
 end
 
 return markdoc;
