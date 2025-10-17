@@ -64,12 +64,74 @@ format.parse = function (input)
 	return lpeg.match(line, input);
 end
 
+--[[ Simple *syntax-aware* hard text wrapping. ]]
+---@param part markdoc.format.parsed
+---@param last string
+---@param width integer 
+---@return string[]
+format.hard_wrap = function (part, last, width)
+	---|fS
+
+	if part.kind == "space" then
+		return { "" };
+	elseif part.kind == "word" or part.kind == "url" then
+		local reserved = width - vim.fn.strdisplaywidth(last or "");
+		local output = {};
+
+		for _, char in ipairs(vim.fn.split(part.value, "\\zs")) do
+			local C = vim.fn.strdisplaywidth(char);
+
+			if C <= width then
+				if C >= reserved then
+					table.insert(output, char);
+					reserved = width;
+				elseif #output == 0 then
+					table.insert(output, char);
+					reserved = width;
+				else
+					output[#output] = output[#output] .. char;
+					reserved = reserved - C;
+				end
+			end
+		end
+
+		return output;
+	else
+		local cleaned = string.gsub(part.value, "[%*%|%<%>%{%}]", "");
+		local wrapped = format.format(cleaned, width - 2, nil, true);
+
+		local marker = { "`", "`" };
+
+		if part.kind == "tag" then
+			marker = { "*", "*" };
+		elseif part.kind == "option_link" then
+			marker = { "'", "'" };
+		elseif part.kind == "tag_link" then
+			marker = { "|", "|" };
+		elseif part.kind == "argument" then
+			marker = { "{", "}" };
+		elseif part.kind == "keycode" then
+			marker = { "<", ">" };
+		end
+
+		for l, line in ipairs(wrapped) do
+			wrapped[l] = marker[1] .. line .. marker[2];
+		end
+
+		table.insert(wrapped, 1, "");
+		return wrapped;
+	end
+
+	---|fE
+end;
+
 --[[ Formats `line` using `width`. ]]
 ---@param line string
 ---@param width? integer 
 ---@param leader? string
+---@param hardwrap? boolean
 ---@return string[]
-format.format = function (line, width, leader)
+format.format = function (line, width, leader, hardwrap)
 	---|fS
 
 	width = width or config.active.generic.textwidth or 80;
@@ -80,7 +142,17 @@ format.format = function (line, width, leader)
 	for _, part in ipairs(parsed) do
 		if vim.fn.strdisplaywidth(output[#output] .. part.value) > width then
 			output[#output] = string.gsub(output[#output], "%s+$", "");
-			table.insert(output, part.kind ~= "space" and part.value or "");
+
+			if hardwrap and vim.fn.strdisplaywidth(part.value) > width then
+				local hardwrapped = format.hard_wrap(part, output[#output], width);
+
+				output[#output] = output[#output] .. (hardwrapped[1] or "");
+				table.remove(hardwrapped, 1);
+
+				output = vim.list_extend(output, hardwrapped);
+			else
+				table.insert(output, part.kind ~= "space" and part.value or "");
+			end
 		else
 			output[#output] = output[#output] .. part.value;
 		end
