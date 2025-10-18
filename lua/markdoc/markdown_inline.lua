@@ -64,6 +64,19 @@ end
 
 ---@param buffer integer
 ---@param TSNode TSNode
+inline.strikethrough = function (buffer, _, TSNode)
+	---|fS
+
+	clear_node(buffer, TSNode:named_child(
+		TSNode:named_child_count() - 1
+	));
+	clear_node(buffer, TSNode:named_child(0));
+
+	---|fE
+end
+
+---@param buffer integer
+---@param TSNode TSNode
 inline.inline_link = function (buffer, _, TSNode)
 	---|fS
 
@@ -182,7 +195,14 @@ end
 
 inline.rule_map = {
 	{ "(strong_emphasis) @bold", inline.bold },
-	{ "(emphasis) @italic", inline.bold },
+	{ "(emphasis) @italic", inline.italic },
+
+	--[[
+		NOTE: `strikethrough` nodes can contain another `strikethrough` inside of them
+		Clear the nested ones first to prevent going out of bounds.
+	]]
+	{ "(strikethrough (strikethrough)) @striked", inline.strikethrough },
+	{ "(strikethrough) @striked", inline.strikethrough },
 
 	{ "(inline_link  (link_text)  (link_destination)) @link", inline.inline_link },
 	{ "(full_reference_link  (link_text)  (link_label)) @link", inline.full_reference_link },
@@ -204,7 +224,7 @@ inline.transform = function (TSTree, buffer, rule)
 	for _, item in ipairs(stack) do
 		-- vim.print(
 		pcall(rule[2], buffer, item[1], item[2])
-		-- ;
+		-- );
 	end
 end
 
