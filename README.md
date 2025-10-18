@@ -184,7 +184,11 @@ Use `<!--markdoc {}-->` syntax for adding file specific configuration.
 Use `<!--markdoc_ignore_start-->` & `<!--markdoc_ignore_end-->` syntax for specifying parts of the document that will be removed in the converted document.
 
 ```markdown
+<!--markdoc_ignore_start-->
+
 # Invisible text
+
+<!--markdoc_ignore_end-->
 
 Tree-sitter based `markdown` to `vimdoc` converter for Neovim.
 

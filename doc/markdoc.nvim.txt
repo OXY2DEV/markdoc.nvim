@@ -18,7 +18,6 @@
 - Ability to configure per file(using `JSON`).
 - Ability to remove parts of the file when converting to Vimdoc(e.g. Top heading
   in `README.md`).
-
 And much more!
 
  ╶────────────────────────────────────────────────────────────────────────────╴ 
@@ -27,7 +26,6 @@ And much more!
 - `tree-sitter-markdown`.
 - `tree-sitter-markdown_inline`.
 - `tree-sitter-html`(for inline `HTML`).
-
 ▋  Important
 ▋ By default, `callouts` use `nerd font` characters. You can change this in the
 ▋ config to use normal text instead.
@@ -153,7 +151,11 @@ Use `<!--markdoc_ignore_start-->` & `<!--markdoc_ignore_end-->` syntax for
 specifying parts of the document that will be removed in the converted document.
 
 >markdown
+	<!--markdoc_ignore_start-->
+	
 	# Invisible text
+	
+	<!--markdoc_ignore_end-->
 	
 	Tree-sitter based `markdown` to `vimdoc` converter for Neovim.
 	
