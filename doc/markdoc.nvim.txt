@@ -108,6 +108,64 @@ It converts given file(s). It can be called with multiple files.
 
 
  ╶────────────────────────────────────────────────────────────────────────────╴ 
+✨ Special syntax                                          *markdoc.nvim-syntax*
+
+`markdoc.nvim` uses special comments to modify the file. These can be,
+
+FILE-SPECIFIC CONFIGURATION                         *markdoc.nvim-syntax.config*
+
+Use `<!--markdoc {]-->` syntax for adding file specific configuration.
+
+>html
+	<!--markdoc
+	    {
+	        "generic": {
+	            "filename": "doc/markdoc.nvim.txt",
+	            "force_write": true,
+	            "header": {
+	                "desc": "Tree-sitter based `Markdown -> Vimdoc` converter for Neovim",
+	                "tag": "markdoc.nvim"
+	            }
+	        },
+	        "markdown": {
+	            "tags": {
+	                "Features$": [ "markdoc.nvim-features" ],
+	
+	                "^generic$": [ "markdoc.nvim-generic" ],
+	                "^filename$": [ "markdoc.nvim-filename", "markdoc.nvim-generic.filename" ],
+	                "^force_write$": [ "markdoc.nvim-force_write", "markdoc.nvim-generic.force_write" ],
+	                "^winopts$": [ "markdoc.nvim-winopts", "markdoc.nvim-generic.winopts" ]
+	            }
+	        }
+	    }
+	-->
+<
+
+
+IGNORING PARTS OF THE DOCUMENT                      *markdoc.nvim-syntax.ignore*
+
+Use `<!--markdoc_ignore_start-->` & `<!--markdoc_ignore_end-->` syntax for
+specifying parts of the document that will be removed in the converted document.
+
+>markdown
+	================================================================================
+	Invisible text
+	
+	Tree-sitter based `markdown` to `vimdoc` converter for Neovim.
+	
+	Some visible text
+<
+
+
+This will result in
+
+>vimdoc
+	
+	Some visible text
+<
+
+
+ ╶────────────────────────────────────────────────────────────────────────────╴ 
 🔧 Configuration
 
 The plugin can be set-up by using the `setup()` function.

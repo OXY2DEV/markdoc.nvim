@@ -12,6 +12,10 @@
             "tags": {
                 "Features$": [ "markdoc.nvim-features" ],
 
+                "Special syntax$": [ "markdoc.nvim-syntax" ],
+                "File%-specific configuration$": [ "markdoc.nvim-syntax.config" ],
+                "Ignoring parts of the document$": [ "markdoc.nvim-syntax.ignore" ],
+
                 "^generic$": [ "markdoc.nvim-generic" ],
                 "^filename$": [ "markdoc.nvim-filename", "markdoc.nvim-generic.filename" ],
                 "^force_write$": [ "markdoc.nvim-force_write", "markdoc.nvim-generic.force_write" ],
@@ -136,6 +140,58 @@ It converts given file(s). It can be called with multiple files.
 
 ```vim
 :Doc README.md test.md
+```
+
+## ✨ Special syntax
+
+`markdoc.nvim` uses **special comments** to modify the file. These can be,
+
+### ✨ File-specific configuration
+
+Use `<!--markdoc {]-->` syntax for adding file specific configuration.
+
+```html
+<!--markdoc
+    {
+        "generic": {
+            "filename": "doc/markdoc.nvim.txt",
+            "force_write": true,
+            "header": {
+                "desc": "Tree-sitter based `Markdown -> Vimdoc` converter for Neovim",
+                "tag": "markdoc.nvim"
+            }
+        },
+        "markdown": {
+            "tags": {
+                "Features$": [ "markdoc.nvim-features" ],
+
+                "^generic$": [ "markdoc.nvim-generic" ],
+                "^filename$": [ "markdoc.nvim-filename", "markdoc.nvim-generic.filename" ],
+                "^force_write$": [ "markdoc.nvim-force_write", "markdoc.nvim-generic.force_write" ],
+                "^winopts$": [ "markdoc.nvim-winopts", "markdoc.nvim-generic.winopts" ]
+            }
+        }
+    }
+-->
+```
+
+### ✨ Ignoring parts of the document
+
+Use `<!--markdoc_ignore_start-->` & `<!--markdoc_ignore_end-->` syntax for specifying parts of the document that will be removed in the converted document.
+
+```markdown
+# Invisible text
+
+Tree-sitter based `markdown` to `vimdoc` converter for Neovim.
+
+Some visible text
+```
+
+This will result in
+
+```vimdoc
+
+Some visible text
 ```
 
 ## 🔧 Configuration
