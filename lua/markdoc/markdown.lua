@@ -154,6 +154,11 @@ markdown.atx_heading = function (buffer, _, TSNode)
 		return;
 	end
 
+	-- FIX: Remove trailing whitespaces.
+	for h, hline in ipairs(heading) do
+		heading[h] = string.gsub(hline, "%s+$", "");
+	end
+
 	vim.api.nvim_buf_set_text(buffer, R[1], 0, R[3], R[4], heading);
 
 	---|fE
@@ -208,7 +213,7 @@ markdown.atx_h3 = function (buffer, _, TSNode)
 
 	heading = vim.list_extend(heading, merge_cols({ width = text_w, alignment = "left", lines = content }, { width = tag_w, alignment = "right", lines = tags }));
 	for l, line in ipairs(heading) do
-		heading[l] = line .. " ~";
+		heading[l] = string.gsub(line, "%s+$", "") .. " ~";
 	end
 
 	vim.api.nvim_buf_set_text(buffer, R[1], R[2], R[3], R[4], heading);
