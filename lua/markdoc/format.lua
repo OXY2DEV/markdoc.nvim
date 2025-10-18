@@ -158,6 +158,21 @@ format.format = function (line, width, leader, hardwrap)
 		end
 	end
 
+	if output[#output] == "" then
+		--[[
+			NOTE: Sometimes there is an empty line(caused by how `hard_wrap()` works).
+
+			We will remove it.
+		]]
+		for o = #output, 1, -1 do
+			if output[o] ~= "" then
+				break;
+			end
+
+			table.remove(output);
+		end
+	end
+
 	if leader then
 		for l, _line in ipairs(output) do
 			if l ~= 1 then
