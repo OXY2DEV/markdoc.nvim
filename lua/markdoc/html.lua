@@ -180,6 +180,23 @@ html.italic = function (buffer, _, TSNode)
 	---|fE
 end
 
+-- Turns **codes**(`<code>Bold</code>`) into **code spans**(`\`Bold\``).
+---@param buffer integer
+---@param TSNode TSNode
+html.code = function (buffer, _, TSNode)
+	---|fS
+
+	local normal = normalize(buffer, TSNode);
+	normal = "`" .. normal .. "`";
+
+	local lines = vim.fn.split(normal, "\n");
+
+	local R = { TSNode:range() };
+	vim.api.nvim_buf_set_text(buffer, R[1], R[2], R[3], R[4], lines);
+
+	---|fE
+end
+
 -- Turns **anchor tags**(`<a href="foo">Link</a>`) into **inline link**(`[Link](foo)`).
 ---@param buffer integer
 ---@param TSNode TSNode
@@ -389,6 +406,7 @@ html.rules = {
 	{ '(element (end_tag ((tag_name) @tag_name (#lua-match? @tag_name "^summary$")) )) @summary', html.summary },
 	{ '(element (end_tag ((tag_name) @tag_name (#lua-match? @tag_name "^details$")) )) @details', html.details },
 
+	{ '(element (end_tag ((tag_name) @tag_name (#any-of? @tag_name "code")) )) @code', html.code },
 	{ '(element (end_tag ((tag_name) @tag_name (#any-of? @tag_name "b" "bold" "em" "emphasis")) )) @bold', html.bold },
 	{ '(element (end_tag ((tag_name) @tag_name (#any-of? @tag_name "i" "italic")) )) @italic', html.italic },
 	{ '(element (end_tag ((tag_name) @tag_name (#any-of? @tag_name "a")) )) @anchor', html.anchor },
