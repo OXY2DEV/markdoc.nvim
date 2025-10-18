@@ -53,15 +53,19 @@ Tree-sitter based `markdown` to `vimdoc` converter for Neovim.
 
 ## 🪄 Features
 
-- Basic `markdown` syntax support.
-- `Inline HTML` support.
+- Common `markdown` syntax support.
+- Common `inline HTML` support.
 - *Aligned* paragraph(via `<p align=""></p>` or `<div align=""></div>`)
 - Preserves whitespace.
 - Extended syntax support(e.g. Callouts).
+- Table converter with column alignment & text wrap support.
 - Custom Table of contents generator.
 - Custom file header support(with support for `version`, `author`, `date modified`).
 - Fully customizable.
 - Ability to configure per file(using `JSON`).
+- Ability to remove parts of the file when converting to Vimdoc(e.g. Top heading in `README.md`).
+
+And much more!
 
 ## 🧭 Requirements
 
@@ -148,7 +152,7 @@ It converts given file(s). It can be called with multiple files.
 
 ### ✨ File-specific configuration
 
-Use `<!--markdoc {]-->` syntax for adding file specific configuration.
+Use `<!--markdoc {}-->` syntax for adding file specific configuration.
 
 ```html
 <!--markdoc
