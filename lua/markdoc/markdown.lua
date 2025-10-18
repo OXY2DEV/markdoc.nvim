@@ -257,7 +257,8 @@ markdown.setext_heading = function (buffer, _, TSNode)
 	end
 
 	local content = format.format(
-		text:gsub("[\n\r]", ""),
+		-- NOTE: Setext headings can span multiple lines, but help headings are single lined.
+		text:gsub("[\n\r]", " "),
 		text_w
 	);
 	local tags = format.format(
