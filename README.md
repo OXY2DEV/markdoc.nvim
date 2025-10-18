@@ -48,7 +48,9 @@ Tree-sitter based `markdown` to `vimdoc` converter for Neovim.
 <!--markdoc_ignore_end-->
 
 <div align="center">
-    <img src="htllo">
+    <img src="https://github.com/OXY2DEV/markdoc.nvim/blob/images/images/markdoc.nvim-3.png">
+    <img src="https://github.com/OXY2DEV/markdoc.nvim/blob/images/images/markdoc.nvim-2.png">
+    <img src="https://github.com/OXY2DEV/markdoc.nvim/blob/images/images/markdoc.nvim-tables.png">
 </div>
 
 ## 🪄 Features
