@@ -11,6 +11,7 @@
 ---
 ---@field block_quotes markdoc.config.markdown.block_quotes
 ---@field code_blocks markdoc.config.markdown.code_blocks
+---@field hr? string Text used to show `horizontal rules`
 ---@field list_items markdoc.config.markdown.list_items
 ---@field tables markdoc.config.markdown.tables
 ---@field tags markdoc.config.markdown.tags

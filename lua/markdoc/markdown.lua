@@ -788,6 +788,20 @@ markdown.list_marker = function (buffer, _, TSNode)
 	---|fE
 end
 
+---@param buffer integer
+---@param TSNode TSNode
+markdown.hr = function (buffer, _, TSNode)
+	---|fS
+
+	local R = range(buffer, TSNode);
+
+	vim.api.nvim_buf_set_text(buffer, R[1], 0, R[1], -1, {
+		config.active.markdown.hr
+	});
+
+	---|fE
+end
+
 markdown.pre_rule = {
 	{ "(setext_heading) @atx", markdown.setext_heading },
 	{ "(atx_heading) @atx", markdown.atx_heading }
@@ -801,6 +815,7 @@ markdown.post_rule = {
 	-- NOTE: Convert nested aligned paragraphs first as markdown syntax is lost during conversion.
 	{ '((paragraph) @paragraph (#lua-match? @paragraph "^::%w+::"))', markdown.paragraph_nested },
 	{ "(atx_heading) @atx", markdown.atx_h3 },
+	{ "(thematic_break) @hr", markdown.hr },
 
 	{ "[ (list_marker_minus) (list_marker_plus) ] @item", markdown.list_marker },
 	{ "(pipe_table) @table", markdown.table },

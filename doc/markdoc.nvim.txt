@@ -2,7 +2,7 @@
 
                                     Image {1}                                   
 
---------------------------------------------------------------------------------
+ ╶────────────────────────────────────────────────────────────────────────────╴ 
 🪄 Features                                              *markdoc.nvim-features*
 
 - Basic `markdown` syntax support.
@@ -16,7 +16,7 @@
 - Fully customizable.
 - Ability to configure per file(using `JSON`).
 
---------------------------------------------------------------------------------
+ ╶────────────────────────────────────────────────────────────────────────────╴ 
 🧭 Requirements
 
 - `tree-sitter-markdown`.
@@ -27,7 +27,7 @@
 ▋ By default, `callouts` use `nerd font` characters. You can change this in the
 ▋ config to use normal text instead.
 
---------------------------------------------------------------------------------
+ ╶────────────────────────────────────────────────────────────────────────────╴ 
 📦 Installation
 
 VIM-PLUG
@@ -81,7 +81,7 @@ Tagged releases can be found in the release page {1}.
 ▋ 󰋽 Note
 ▋ `Github releases` may sometimes be slightly behind `main`.
 
---------------------------------------------------------------------------------
+ ╶────────────────────────────────────────────────────────────────────────────╴ 
 🎇 Usage
 
 There is a single command,
@@ -107,7 +107,7 @@ It converts given file(s). It can be called with multiple files.
 <
 
 
---------------------------------------------------------------------------------
+ ╶────────────────────────────────────────────────────────────────────────────╴ 
 🔧 Configuration
 
 The plugin can be set-up by using the `setup()` function.
@@ -263,6 +263,7 @@ Markdown options.
 	---
 	---@field block_quotes markdoc.config.markdown.block_quotes
 	---@field code_blocks markdoc.config.markdown.code_blocks
+	---@field hr? string Text used to show `horizontal rules`
 	---@field list_items markdoc.config.markdown.list_items
 	---@field tables markdoc.config.markdown.tables
 	---@field tags markdoc.config.markdown.tags
@@ -389,6 +390,20 @@ Type: `markdoc.config.markdown.code_blocks`
 
 
 Configuration for `code blocks`.
+
+hr                                                             *markdoc.nvim-hr* ~
+                                                      *markdoc.nvim-markdown.hr* ~
+
+Type: `string`
+
+Text representing a `horizontal rule`.
+
+>lua
+	markdown = {
+	    hr = " ╶" .. string.rep("─", 76) .. "╴ ",
+	}
+<
+
 
 list_items ~
 

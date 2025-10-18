@@ -30,6 +30,7 @@
                 "^heading_ratio$": [ "markdoc.nvim-heading_ratio", "markdoc.nvim-markdown.heading_ratio" ],
                 "^block_quotes$": [ "markdoc.nvim-block_quotes", "markdoc.nvim-markdown.block_quotes" ],
                 "^code_blocks$": [ "markdoc.nvim-code_blocks", "markdoc.nvim-markdown.code_blocks" ],
+                "^hr$": [ "markdoc.nvim-hr", "markdoc.nvim-markdown.hr" ],
                 "^tables$": [ "markdoc.nvim-tables", "markdoc.nvim-markdown.tables" ],
                 "^tags$": [ "markdoc.nvim-tags", "markdoc.nvim-markdown.tags" ]
             }
@@ -278,6 +279,7 @@ Markdown options.
 ---
 ---@field block_quotes markdoc.config.markdown.block_quotes
 ---@field code_blocks markdoc.config.markdown.code_blocks
+---@field hr? string Text used to show `horizontal rules`
 ---@field list_items markdoc.config.markdown.list_items
 ---@field tables markdoc.config.markdown.tables
 ---@field tags markdoc.config.markdown.tags
@@ -392,6 +394,18 @@ Type: `markdoc.config.markdown.code_blocks`
 ```
 
 Configuration for `code blocks`.
+
+#### hr
+
+Type: `string`
+
+Text representing a `horizontal rule`.
+
+```lua
+markdown = {
+    hr = " ╶" .. string.rep("─", 76) .. "╴ ",
+}
+```
 
 #### list_items
 

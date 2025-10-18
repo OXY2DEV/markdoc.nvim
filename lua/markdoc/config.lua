@@ -159,6 +159,8 @@ config.default = {
 			indentation = "\t"
 		},
 
+		hr = " ╶" .. string.rep("─", 76) .. "╴ ",
+
 		tags = {
 			-- default = { "a", "b", "c" }
 		},

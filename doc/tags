@@ -16,6 +16,7 @@ markdoc.nvim-generic.toc	markdoc.nvim.txt	/*markdoc.nvim-generic.toc*
 markdoc.nvim-generic.winopts	markdoc.nvim.txt	/*markdoc.nvim-generic.winopts*
 markdoc.nvim-header	markdoc.nvim.txt	/*markdoc.nvim-header*
 markdoc.nvim-heading_ratio	markdoc.nvim.txt	/*markdoc.nvim-heading_ratio*
+markdoc.nvim-hr	markdoc.nvim.txt	/*markdoc.nvim-hr*
 markdoc.nvim-images	markdoc.nvim.txt	/*markdoc.nvim-images*
 markdoc.nvim-indent	markdoc.nvim.txt	/*markdoc.nvim-indent*
 markdoc.nvim-link_ref_format	markdoc.nvim.txt	/*markdoc.nvim-link_ref_format*
@@ -25,6 +26,7 @@ markdoc.nvim-markdown	markdoc.nvim.txt	/*markdoc.nvim-markdown*
 markdoc.nvim-markdown.block_quotes	markdoc.nvim.txt	/*markdoc.nvim-markdown.block_quotes*
 markdoc.nvim-markdown.code_blocks	markdoc.nvim.txt	/*markdoc.nvim-markdown.code_blocks*
 markdoc.nvim-markdown.heading_ratio	markdoc.nvim.txt	/*markdoc.nvim-markdown.heading_ratio*
+markdoc.nvim-markdown.hr	markdoc.nvim.txt	/*markdoc.nvim-markdown.hr*
 markdoc.nvim-markdown.link_ref_format	markdoc.nvim.txt	/*markdoc.nvim-markdown.link_ref_format*
 markdoc.nvim-markdown.link_url_modifiers	markdoc.nvim.txt	/*markdoc.nvim-markdown.link_url_modifiers*
 markdoc.nvim-markdown.tables	markdoc.nvim.txt	/*markdoc.nvim-markdown.tables*
