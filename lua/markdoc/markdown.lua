@@ -199,6 +199,7 @@ markdown.atx_h3 = function (buffer, _, TSNode)
 	local _tags = {};
 
 	for _, tag in ipairs(__tags) do
+		tag_w = math.max(tag_w, vim.fn.strdisplaywidth(tag) + 2);
 		table.insert(_tags, "*" .. string.gsub(tag, "%*", "") .. "*")
 	end
 
