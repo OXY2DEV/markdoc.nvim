@@ -1,5 +1,5 @@
 --[[
-A `markdown` to `vimdoc` converter for **Neovim** with support for `HTML`.
+A tree-sitter based `markdown` to `vimdoc` converter for **Neovim** with support for `HTML`.
 
 Usage 
 
@@ -66,7 +66,7 @@ markdoc.convert_buffer = function (buffer, use)
 	---|fE
 end
 
---[[ Converts `buffer` into `vimdoc`. ]]
+--[[ Converts **file** with `path` into `vimdoc`. ]]
 ---@param path string
 ---@param use? integer
 markdoc.convert_file = function (path, use)
@@ -119,7 +119,15 @@ markdoc.convert_file = function (path, use)
 	---|fE
 end
 
-markdoc.setup = function ()
+---@param user_config? markdoc.config
+markdoc.setup = function (user_config)
+	---|fS
+
+	if type(user_config) == "table" then
+		local config = require("markdoc.config");
+		config.setup(user_config)
+	end
+
 	vim.api.nvim_create_user_command("Doc", function (data)
 		local fargs = data.fargs;
 
@@ -141,6 +149,8 @@ markdoc.setup = function ()
 		nargs = "*",
 		complete = "file"
 	});
+
+	---|fE
 end
 
 return markdoc;

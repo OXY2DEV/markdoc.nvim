@@ -1,17 +1,5 @@
 local config = {};
 
-config.eval = function (val, ...)
-	if type(val) ~= "function" then
-		return val;
-	end
-
-	local sucess, new = pcall(val, ...);
-
-	if sucess then
-		return new;
-	end
-end
-
 ---@type markdoc.config
 config.default = {
 	generic = {
@@ -200,6 +188,25 @@ config.default = {
 	},
 };
 
+---@param val any
+---@param ... any
+---@return any
+config.eval = function (val, ...)
+	---|fS
+
+	if type(val) ~= "function" then
+		return val;
+	end
+
+	local sucess, new = pcall(val, ...);
+
+	if sucess then
+		return new;
+	end
+
+	---|fE
+end
+
 ---@type markdoc.config
 config.active = vim.deepcopy(config.default, true);
 
@@ -208,6 +215,8 @@ config.active = vim.deepcopy(config.default, true);
 ---@return table
 ---@return boolean
 config.block_quote = function (leader)
+	---|fS
+
 	leader = leader or "";
 	local callout = string.match(leader, "^%>%s*%[!([^%]]+)%]");
 
@@ -229,6 +238,8 @@ config.block_quote = function (leader)
 	end
 
 	return default, false;
+
+	---|fE
 end
 
 --- Gets tags for heading.
@@ -315,11 +326,8 @@ config.use_refs = function (description, destination)
 	---|fE
 end
 
+---@param new markdoc.config
 config.setup = function (new)
-	if type(new) ~= "table" then
-		return;
-	end
-
 	config.active = vim.tbl_deep_extend("force", config.active, new);
 end
 
