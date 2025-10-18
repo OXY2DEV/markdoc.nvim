@@ -224,6 +224,67 @@ end
 
 ---@param buffer integer
 ---@param TSNode TSNode
+markdown.setext_heading = function (buffer, _, TSNode)
+	---|fS
+
+	local _marker = TSNode:named_child(1) --[[ @as TSNode ]];
+	local marker = vim.treesitter.get_node_text(_marker, buffer, {});
+
+	local heading = {};
+
+	local MAX = config.active.generic.textwidth or (vim.bo[buffer].textwidth > 0 and vim.bo[buffer].textwidth or 80);
+	local ratio = config.active.markdown.heading_ratio;
+
+	local fraction = MAX / (ratio[1] + ratio[2]);
+	local text_w = math.floor(fraction * ratio[1]);
+	local tag_w = math.floor(fraction * ratio[2]);
+
+	local _content = TSNode:field("heading_content")[1];
+	local R = range(buffer, TSNode);
+
+	if not _content then
+		vim.api.nvim_buf_set_text(buffer, R[1], R[2], R[3], R[4], {});
+		return;
+	end
+
+	local text = vim.treesitter.get_node_text(_content, buffer, {});
+
+	local __tags = config.get_tags(text);
+	local _tags = {};
+
+	for _, tag in ipairs(__tags) do
+		table.insert(_tags, "*" .. string.gsub(tag, "%*", "") .. "*")
+	end
+
+	local content = format.format(
+		text:gsub("[\n\r]", ""),
+		text_w
+	);
+	local tags = format.format(
+		table.concat(_tags, " "),
+		tag_w
+	);
+
+	if string.match(marker, "=") then
+		table.insert(heading, string.rep("=", MAX));
+		heading = vim.list_extend(heading, merge_cols({ width = text_w, alignment = "left", lines = content }, { width = tag_w, alignment = "right", lines = tags }))
+	else
+		table.insert(heading, string.rep("-", MAX));
+		heading = vim.list_extend(heading, merge_cols({ width = text_w, alignment = "left", lines = content }, { width = tag_w, alignment = "right", lines = tags }))
+	end
+
+	-- FIX: Remove trailing whitespaces.
+	for h, hline in ipairs(heading) do
+		heading[h] = string.gsub(hline, "%s+$", "");
+	end
+
+	vim.api.nvim_buf_set_text(buffer, R[1], 0, R[3], R[4], heading);
+
+	---|fE
+end
+
+---@param buffer integer
+---@param TSNode TSNode
 markdown.block_quote = function (buffer, _, TSNode)
 	---|fS
 
@@ -727,6 +788,7 @@ markdown.list_marker = function (buffer, _, TSNode)
 end
 
 markdown.pre_rule = {
+	{ "(setext_heading) @atx", markdown.setext_heading },
 	{ "(atx_heading) @atx", markdown.atx_heading }
 };
 markdown.post_rule = {
