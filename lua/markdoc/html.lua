@@ -429,7 +429,10 @@ html.transform = function (TSTree, buffer, rule)
 
 	for capture_id, capture_node, _, _ in query:iter_captures(TSTree:root(), buffer) do
 		local capture_name = query.captures[capture_id];
-		table.insert(stack, 1, { capture_name, capture_node })
+
+		if capture_name ~= "tag_name" then
+			table.insert(stack, 1, { capture_name, capture_node });
+		end
 	end
 
 	for _, item in ipairs(stack) do
