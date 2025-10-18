@@ -38,4 +38,6 @@ jobs:
           version: ${{ env.LUAROCKS_VERSION }}
           dependencies: |
             tree-sitter-markdown
+            tree-sitter-markdown_inline
+            tree-sitter-html
 
