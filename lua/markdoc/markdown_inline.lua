@@ -1,5 +1,6 @@
 local inline = {};
 
+local utils = require("markdoc.utils");
 local config = require("markdoc.config");
 local links = require("markdoc.links");
 
@@ -240,11 +241,12 @@ inline.walk = function (buffer)
 		end
 
 		root_parser:parse(true);
+		local ignore = utils.create_ignore_range(buffer);
 
 		root_parser:for_each_tree(function (TSTree, language_tree)
 			local lang = language_tree:lang();
 
-			if lang == "markdown_inline" then
+			if lang == "markdown_inline" and utils.ignore_tree(TSTree, ignore) == false then
 				inline.transform(TSTree, buffer, rule)
 			end
 		end);

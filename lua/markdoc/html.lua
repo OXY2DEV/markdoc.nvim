@@ -1,6 +1,8 @@
 -- `HTML` to `markdown` converter for `markdoc`.
 local html = {};
 
+local utils = require("markdoc.utils");
+
 ---@param buffer integer
 ---@param TSNode TSNode
 ---@param inline? boolean
@@ -308,7 +310,7 @@ html.ignore_end = {};
 ---@param TSNode TSNode
 html.mark_ignore_end = function (_, _, TSNode)
 	local R = { TSNode:range() };
-	table.insert(html.ignore_end, R[3]);
+	table.insert(html.ignore_end, R[3] + 1);
 end
 
 ---@param buffer integer
@@ -426,8 +428,6 @@ end
 html.walk = function (buffer)
 	---|fS
 
-	html.ignore_end = {};
-
 	for _, rule in ipairs(html.rules) do
 		local root_parser = vim.treesitter.get_parser(buffer);
 
@@ -436,11 +436,12 @@ html.walk = function (buffer)
 		end
 
 		root_parser:parse(true);
+		local ignore = utils.create_ignore_range(buffer);
 
 		root_parser:for_each_tree(function (TSTree, language_tree)
 			local lang = language_tree:lang();
 
-			if lang == "html" then
+			if lang == "html" and not utils.ignore_tree(TSTree, ignore) then
 				html.transform(TSTree, buffer, rule)
 			end
 		end);

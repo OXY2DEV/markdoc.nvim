@@ -1,5 +1,6 @@
 local markdown = {};
 
+local utils = require("markdoc.utils");
 local format = require("markdoc.format");
 local config = require("markdoc.config");
 
@@ -970,12 +971,13 @@ markdown.walk = function (buffer)
 		end
 
 		root_parser:parse(true);
+		local ignore = utils.create_ignore_range(buffer);
 
 		root_parser:for_each_tree(function (TSTree, language_tree)
 			local lang = language_tree:lang();
 
-			if lang == "markdown" then
-				markdown.transform(TSTree, buffer, rule)
+			if lang == "markdown" and utils.ignore_tree(TSTree, ignore) == false then
+				markdown.transform(TSTree, buffer, rule);
 			end
 		end);
 	end
@@ -988,11 +990,12 @@ markdown.walk = function (buffer)
 		end
 
 		root_parser:parse(true);
+		local ignore = utils.create_ignore_range(buffer);
 
 		root_parser:for_each_tree(function (TSTree, language_tree)
 			local lang = language_tree:lang();
 
-			if lang == "markdown" then
+			if lang == "markdown" and utils.ignore_tree(TSTree, ignore) == false then
 				markdown.transform(TSTree, buffer, rule)
 			end
 		end);
