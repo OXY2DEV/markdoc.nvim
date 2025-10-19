@@ -97,7 +97,7 @@ format.hard_wrap = function (part, last, width)
 
 		return output;
 	else
-		local cleaned = string.gsub(part.value, "[%*%|%<%>%{%}]", "");
+		local cleaned = string.gsub(part.value, "[%*%|%<%>%{%`}]", "");
 		local wrapped = format.format(cleaned, width - 2, nil, true);
 
 		local marker = { "`", "`" };
@@ -115,7 +115,8 @@ format.hard_wrap = function (part, last, width)
 		end
 
 		for l, line in ipairs(wrapped) do
-			wrapped[l] = marker[1] .. line .. marker[2];
+			local W = vim.fn.strdisplaywidth(line);
+			wrapped[l] = marker[1] .. line .. string.rep(" ", width - (W + 2)) .. marker[2];
 		end
 
 		table.insert(wrapped, 1, "");
