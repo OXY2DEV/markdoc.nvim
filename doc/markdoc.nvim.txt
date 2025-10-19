@@ -18,6 +18,7 @@
 - Ability to configure per file(using `JSON`).
 - Ability to remove parts of the file when converting to Vimdoc(e.g. Top heading
   in `README.md`).
+
 And much more!
 
  ╶────────────────────────────────────────────────────────────────────────────╴ 
@@ -26,6 +27,7 @@ And much more!
 - `tree-sitter-markdown`.
 - `tree-sitter-markdown_inline`.
 - `tree-sitter-html`(for inline `HTML`).
+
 ▋  Important
 ▋ By default, `callouts` use `nerd font` characters. You can change this in the
 ▋ config to use normal text instead.
