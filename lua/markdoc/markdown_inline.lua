@@ -30,8 +30,10 @@ local function link_ref (kind, buffer, desc, url)
 	---|fS
 
 	if config.use_refs(desc, url) then
+		local default = kind == "link" and "{%d}" or "{img:%d}";
 		local ref = links.add(kind, buffer, url);
-		return string.format(config.active.markdown.link_ref_format or "{%d}", ref);
+
+		return string.format(config.active.markdown.link_ref_format or default, ref);
 	else
 		return config.modify_url(buffer, desc, url);
 	end

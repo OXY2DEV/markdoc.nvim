@@ -1,6 +1,6 @@
 *markdoc.nvim*       Tree-sitter based `Markdown -> Vimdoc` converter for Neovim
 
-                                    Image {1}                                   
+                                  Image {img:1}                                 
 
 --------------------------------------------------------------------------------
 🪄 Features                                              *markdoc.nvim-features*
