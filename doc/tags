@@ -35,6 +35,7 @@ markdoc.nvim-markdown.use_link_refs	markdoc.nvim.txt	/*markdoc.nvim-markdown.use
 markdoc.nvim-syntax	markdoc.nvim.txt	/*markdoc.nvim-syntax*
 markdoc.nvim-syntax.config	markdoc.nvim.txt	/*markdoc.nvim-syntax.config*
 markdoc.nvim-syntax.ignore	markdoc.nvim.txt	/*markdoc.nvim-syntax.ignore*
+markdoc.nvim-syntax.toc	markdoc.nvim.txt	/*markdoc.nvim-syntax.toc*
 markdoc.nvim-tables	markdoc.nvim.txt	/*markdoc.nvim-tables*
 markdoc.nvim-tags	markdoc.nvim.txt	/*markdoc.nvim-tags*
 markdoc.nvim-textwidth	markdoc.nvim.txt	/*markdoc.nvim-textwidth*
