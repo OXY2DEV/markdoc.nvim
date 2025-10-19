@@ -398,7 +398,13 @@ markdown.formatter = function (buffer, _, TSNode)
 	end
 
 	for l, line in ipairs(lines) do
-		if vim.list_contains(markdown.ignore_lines, R[1] + (l - 1)) then
+		if vim.list_contains(markdown.ignore_lines, R[1] + (l - 1)) or line == "" then
+			--[[
+				NOTE: Lines that should be ignored(e.g. `code block`, `table` etc.) and empty lines are added as is.
+
+				The `format.format()` returns `{}` when the line is `""`. So, we add it directly here.
+				We can't change how `format()` outputs as it breaks `table` & `block quote`.
+			]]
 			formatted = vim.list_extend(formatted, { line });
 		else
 			formatted = vim.list_extend(formatted, format.format(line, nil, get_leader(line)));
