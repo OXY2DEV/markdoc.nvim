@@ -335,14 +335,20 @@ end
 html.clear_ignore = function (buffer, _, TSNode)
 	---|fS
 
-	local last = table.remove(html.ignore_end);
+	--[[
+		NOTE: `ignore_end` should be accessed from first to last.
 
-	if not last then
+		This is because the rules are parsed from the **bottom** of the file.
+		So, the first entry in `ignore_end` is the end of the *last* region.
+	]]
+	local to = table.remove(html.ignore_end, 1);
+
+	if not to then
 		return;
 	end
 
 	local R = { TSNode:range() };
-	vim.api.nvim_buf_set_lines(buffer, R[1], last, false, {});
+	vim.api.nvim_buf_set_lines(buffer, R[1], to, false, {});
 
 	---|fE
 end
