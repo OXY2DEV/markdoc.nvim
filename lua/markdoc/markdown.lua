@@ -922,8 +922,10 @@ markdown.links = function (buffer)
 	table.insert(lines, link_config.desc or "Links ~" );
 
 	for l, link in ipairs(links.urls[buffer] or {}) do
+		local _link = config.modify_url(buffer, tostring(l), link);
+
 		local index = string.format(link_config.list_marker or "%d:", l);
-		local url = string.format(link_config.url_format or " %s", link);
+		local url = string.format(link_config.url_format or " %s", _link);
 
 		table.insert(lines, index .. url);
 	end
@@ -950,8 +952,10 @@ markdown.images = function (buffer)
 	table.insert(lines, image_config.desc or "Images ~");
 
 	for l, link in ipairs(links.urls[buffer] or {}) do
+		local _link = config.modify_url(buffer, tostring(l), link);
+
 		local index = string.format(image_config.list_marker or "%d:", l);
-		local url = string.format(image_config.url_format or " %s", link);
+		local url = string.format(image_config.url_format or " %s", _link);
 
 		table.insert(lines, index .. url);
 	end
