@@ -473,7 +473,7 @@ markdown.fenced_code_block = function (buffer, _, TSNode)
 
 	local R = range(buffer, TSNode);
 
-	vim.api.nvim_buf_set_text(buffer, R[1], R[2], R[3], R[4], {});
+	vim.api.nvim_buf_set_text(buffer, R[1], R[2], R[3] + 1, R[4], {});
 	vim.api.nvim_buf_set_lines(buffer, R[1], R[1], false, lines);
 
 	---|fE
