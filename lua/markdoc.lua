@@ -48,10 +48,15 @@ markdoc.convert_buffer = function (buffer, use)
 	local config = require("markdoc.config");
 
 	if config.active.generic.filename then
+		local leader = "";
+		vim.api.nvim_buf_call(buffer, function ()
+			leader = vim.fn.expand("%:h") .. "/";
+		end);
+
 		vim.api.nvim_buf_call(new, function ()
 			vim.cmd(
 				(config.active.generic.force_write and "write! " or "write ") ..
-				config.active.generic.filename
+				leader .. config.active.generic.filename
 			);
 		end);
 	else
@@ -101,10 +106,12 @@ markdoc.convert_file = function (path, use)
 	local config = require("markdoc.config");
 
 	if config.active.generic.filename then
+		local leader = vim.fn.fnamemodify(path, ":p:h") .. "/";
+
 		vim.api.nvim_buf_call(new, function ()
 			vim.cmd(
 				(config.active.generic.force_write and "write! " or "write ") ..
-				config.active.generic.filename
+				leader .. config.active.generic.filename
 			);
 		end);
 	else
