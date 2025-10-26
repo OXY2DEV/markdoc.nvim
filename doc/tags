@@ -1,4 +1,7 @@
+current	markdoc.nvim.txt	/*current*
 markdoc.nvim	markdoc.nvim.txt	/*markdoc.nvim*
+markdoc.nvim-api	markdoc.nvim.txt	/*markdoc.nvim-api*
+markdoc.nvim-api.convert_file	markdoc.nvim.txt	/*markdoc.nvim-api.convert_file*
 markdoc.nvim-block_quotes	markdoc.nvim.txt	/*markdoc.nvim-block_quotes*
 markdoc.nvim-code_blocks	markdoc.nvim.txt	/*markdoc.nvim-code_blocks*
 markdoc.nvim-features	markdoc.nvim.txt	/*markdoc.nvim-features*
@@ -40,6 +43,7 @@ markdoc.nvim-tables	markdoc.nvim.txt	/*markdoc.nvim-tables*
 markdoc.nvim-tags	markdoc.nvim.txt	/*markdoc.nvim-tags*
 markdoc.nvim-textwidth	markdoc.nvim.txt	/*markdoc.nvim-textwidth*
 markdoc.nvim-toc	markdoc.nvim.txt	/*markdoc.nvim-toc*
+markdoc.nvim-usage	markdoc.nvim.txt	/*markdoc.nvim-usage*
 markdoc.nvim-use_link_refs	markdoc.nvim.txt	/*markdoc.nvim-use_link_refs*
 markdoc.nvim-winopts	markdoc.nvim.txt	/*markdoc.nvim-winopts*
 references	markdoc.nvim.txt	/*references*

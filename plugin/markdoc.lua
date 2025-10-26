@@ -10,9 +10,9 @@ vim.api.nvim_create_user_command("Doc", function (data)
 
 	for _, arg in ipairs(fargs) do
 		if tonumber(arg) then
-			use = markdoc.convert_buffer(tonumber(arg), use);
+			use = markdoc.convert_buffer(tonumber(arg), nil, use);
 		else
-			use = markdoc.convert_file(arg, use);
+			use = markdoc.convert_file(arg, nil, use);
 		end
 	end
 end, {

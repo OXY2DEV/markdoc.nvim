@@ -17,6 +17,11 @@
                 "Ignoring parts of the document$": [ "markdoc.nvim-syntax.ignore" ],
                 "Table of contents$": [ "markdoc.nvim-syntax.toc" ],
 
+                "Usage$": [ "markdoc.nvim-usage" ],
+                "API functions$": [ "markdoc.nvim-api" ],
+                "File conversion API$": [ "markdoc.nvim-api.convert_file" ],
+                "Buffer conversion API$": [ "markdoc.nvim-api.convert_buffer" ],
+
                 "^generic$": [ "markdoc.nvim-generic" ],
                 "^filename$": [ "markdoc.nvim-filename", "markdoc.nvim-generic.filename" ],
                 "^force_write$": [ "markdoc.nvim-force_write", "markdoc.nvim-generic.force_write" ],
@@ -143,11 +148,70 @@ When called with an argument,
 :Doc README.md
 ```
 
-It converts given file(s). It can be called with multiple files.
+It converts given file.
+
+```vim
+:Doc 0
+```
+
+Or buffer.
+
+It can be called with multiple files/buffers.
 
 ```vim
 :Doc README.md test.md
 ```
+
+
+## 📬 API functions
+
+There are 2 available API functions.
+
+### 🧩 File conversion API
+
+```lua
+--[[ Converts **file** with `path` into `vimdoc`. ]]
+---@param path string Path to file.
+---@param user_config? markdoc.config Custom configuration. Overrides the file specific configuration.
+---@param use? integer Buffer to dump the preview into. Has no effect if `generic.filename` is set.
+markdoc.convert_file = function (path, user_config, use)
+    -- ...
+end
+```
+
+This function can be used to convert a file in `path` into vimdoc.
+
+You can use it like so,
+
+```lua
+require("markdoc").convert_file("README.md", {
+    generic = { filename = "doc/markdoc.nvim.txt" }
+});
+```
+
+### 🧩 Buffer conversion API
+
+```lua
+--[[ Converts `buffer` into `vimdoc`. ]]
+---@param buffer? integer Buffer ID. Defaults to *current* buffer.
+---@param user_config? markdoc.config Custom configuration. Overrides the file specific configuration.
+---@param use? integer Buffer to dump the preview into. Has no effect if `generic.filename` is set.
+markdoc.convert_buffer = function (buffer, user_config, use)
+    -- ...
+end
+```
+
+This function can be used to convert a `buffer` into vimdoc.
+
+You can use it like so,
+
+```lua
+require("markdoc").convert_buffer(0, {
+    generic = { filename = "doc/markdoc.nvim.txt" }
+});
+```
+
+This will convert current buffer.
 
 ## ✨ Special syntax
 
@@ -234,6 +298,23 @@ The following options are supported,
 
 Type: `markdoc.config.generic`
 
+```lua from: ./lua/markdoc/types/markdoc.lua class: markdoc.config.generic
+---@class markdoc.config.generic
+---
+---@field filename? string Name of help file.
+---@field relative_path? boolean Is the file oath relative to the `source` file? Gets set to `false`, if `filename` starts with `~`.
+---@field force_write? boolean Should `:write!` be used instead of `:write`?
+---@field winopts? table Window options for the previewer.
+---
+---@field textwidth? integer Text width of the help file.
+---@field indent? integer Number of spaces to use for indentation.
+---
+---@field header markdoc.config.generic.header
+---@field links markdoc.config.generic.links
+---@field images markdoc.config.generic.links
+---@field toc markdoc.config.generic.toc
+```
+
 Generic configuration options. These are,
 
 #### filename
@@ -243,7 +324,20 @@ Type: `string`
 Name of the file to save to.
 
 >[!NOTE]
-> This is relative to the current working directory!
+> This is relative to the current file being concerted!
+
+>[!IMPORTANT]
+> `markdoc` doesn't create non-existing directories! You have to make sure the directories exist before using it!
+
+#### relative_path
+
+Type: `string`
+
+When `true`(default value), [generic.filename](#filename) will be relative to the source file's location.
+When `false`, the filename will be relative to the current working directory.
+
+>[!NOTE]
+> This is useful for automation if you wish to have some files be created relative to their source and others relative to current directory.
 
 #### force_write
 
@@ -321,7 +415,7 @@ Type: `markdoc.config.generic.toc`
 
 Configuration for `table of contents` section.
 
-```lua
+```lua from: ./lua/markdoc/types/markdoc.lua class: markdoc.config.generic.toc
 ---@class markdoc.config.generic.toc
 ---
 ---@field enabled? boolean
@@ -330,8 +424,11 @@ Configuration for `table of contents` section.
 ---@field heading_level? integer
 ---
 ---@field entries generic.toc.entry[]
+```
 
+Each entry in `entries` has the following structure.
 
+```lua from: ./lua/markdoc/types/markdoc.lua class: generic.toc.entry
 ---@class generic.toc.entry
 ---
 ---@field text string
@@ -342,8 +439,7 @@ Configuration for `table of contents` section.
 
 Markdown options.
 
-```lua
--- Configuration for `markdown`
+```lua from: ./lua/markdoc/types/markdown.lua class: markdoc.config.markdown
 ---@class markdoc.config.markdown
 ---
 ---@field use_link_refs markdown.use_link_refs Should *references* be used instead of `URLs`
@@ -364,7 +460,7 @@ Markdown options.
 
 Type: `markdown.use_link_refs`
 
-```lua
+```lua from: ./lua/markdoc/types/markdown.lua class: markdown.use_link_refs
 ---@alias markdown.use_link_refs
 ---| boolean
 ---| fun (description: string, destination: string): boolean
@@ -392,18 +488,22 @@ Text used for formatting the reference of a link. Default is `{%d}`.
 
 Type: `markdown.url_modifier.entry[]`
 
-```lua
+```lua from: ./lua/markdoc/types/markdown.lua class: markdown.url_modifier.entry
 ---@class markdown.url_modifier.entry
 ---
 ---@field [1] string `Lua-pattern` to match.
 ---@field [2] markdown.url_modifier
+```
 
+Modifies URLs. Useful for section links(e.g. `#link_url_modifiers`).
+
+Each entry has the following pattern.
+
+```lua from: ./lua/markdoc/types/markdown.lua class: markdown.url_modifier
 ---@alias markdown.url_modifier
 ---| string
 ---| fun (description: string, destination: string): string
 ```
-
-Modifies URLs. Useful for section links(e.g. `#link_url_modifiers`).
 
 #### heading_ratio
 
@@ -418,50 +518,30 @@ Ratio of spaces taken by heading text & the tags. Default is `{ 6, 4 }`.
 
 Type: `markdoc.config.markdown.block_quotes`
 
-```lua
+```lua from: ./lua/markdoc/types/markdown.lua class: markdoc.config.markdown.block_quotes
+---@class markdoc.config.markdown.block_quotes
+---
+---@field default markdown.block_quotes.opts
+---@field [string] markdown.block_quotes.opts
+```
+
+Configuration for `block quotes` & `callouts`.
+
+Each block quote type has the following options.
+
+```lua from: ./lua/markdoc/types/markdown.lua class: markdown.block_quotes.opts
 ---@class markdown.block_quotes.opts
 ---
 ---@field border? string
 ---@field icon? string
 ---@field preview? string
-
-
----@class markdoc.config.markdown.block_quotes
----
----@field default markdown.block_quotes.opts
----@field [string] markdown.block_quotes.opts
-markdown = {
-    block_quotes = {
-        ---|fS
-
-        default = {
-            border = "▋",
-        },
-
-        ["ABSTRACT"] = {
-            preview = "󱉫 Abstract",
-            icon = "󱉫",
-        },
-
-        ["NOTE"] = {
-            preview = "󰋽 Note",
-            icon = "󰋽",
-        },
-
-        -- ...
-
-        ---|fE
-    },
-}
 ```
-
-Configuration for `block quotes` & `callouts`.
 
 #### code_blocks
 
 Type: `markdoc.config.markdown.code_blocks`
 
-```lua
+```lua from: ./lua/markdoc/types/markdown.lua class: markdoc.config.markdown.code_blocks
 ---@class markdoc.config.markdown.code_blocks
 ---
 ---@field indentation? string Text used for indenting code block.
@@ -486,7 +566,7 @@ markdown = {
 
 Type: `markdoc.config.markdown.list_items`
 
-```lua
+```lua from: ./lua/markdoc/types/markdown.lua class: markdoc.config.markdown.list_items
 ---@class markdoc.config.markdown.list_items
 ---
 ---@field marker_plus? string Text used to replace `+` markers.
@@ -495,20 +575,26 @@ Type: `markdoc.config.markdown.list_items`
 ---
 ---@field marker_dot? string Text used to replace `%d+.` markers. May contain `%d` to add the marker number.
 ---@field marker_parenthesis? string Text used to replace `%d+)` markers. May contain `%d` to add the marker number.
-markdown = {
-    list_items = {
-        marker_plus = "•",
-        marker_dot = "%d:"
-    }
-}
 ```
 
 #### tables
 
 Type: `markdoc.config.markdown.tables`
 
-```lua
--- Border elements for the table.
+```lua from: ./lua/markdoc/types/markdown.lua class: markdoc.config.markdown.tables
+---@class markdoc.config.markdown.tables
+---
+---@field max_col_size? integer Maximum width of a table `column`.
+---@field preserve_whitespace? boolean Should **leading** & **trailing** whitespaces be preserved?
+---@field default_alignment? "left" | "center" | "right" Default *text alignment* of table cells.
+---@field borders? markdown.tables.border Table border.
+```
+
+Changes how table borders are shown.
+
+Tables have the following options for border drawing.
+
+```lua from: ./lua/markdoc/types/markdown.lua class: markdown.tables.border
 ---@class markdown.tables.border
 ---
 ---@field top markdown.tables.border.decoration
@@ -519,8 +605,11 @@ Type: `markdoc.config.markdown.tables`
 ---
 ---@field header markdown.tables.border.row
 ---@field row markdown.tables.border.row
+```
 
+`top`, `bottom`, `separator` & `row_separator` have the following options.
 
+```lua from: ./lua/markdoc/types/markdown.lua class: markdown.tables.border.decoration
 ---@class markdown.tables.border.decoration
 ---
 ---@field [1] string Left border
@@ -528,21 +617,19 @@ Type: `markdoc.config.markdown.tables`
 ---@field [3] string Right border
 ---
 ---@field [4] string Column separator.
+```
 
+`header` & `row` have the following options.
 
+```lua from: ./lua/markdoc/types/markdown.lua class: markdown.tables.border.row
 ---@class markdown.tables.border.row
 ---
 ---@field [1] string Left border
 ---@field [2] string Column separator.
 ---@field [3] string Right border
+```
 
-
----@class markdoc.config.markdown.tables
----
----@field max_col_size? integer Maximum width of a table `column`.
----@field preserve_whitespace? boolean Should **leading** & **trailing** whitespaces be preserved?
----@field default_alignment? "left" | "center" | "right" Default *text alignment* of table cells.
----@field borders? markdown.tables.border Table border.
+```lua
 markdown = {
     tables = {
         max_col_size = 20,
@@ -567,17 +654,20 @@ markdown = {
 
 Type: `markdoc.config.markdown.tags`
 
-```lua
+```lua from: ./lua/markdoc/types/markdown.lua class: markdoc.config.markdown.tags
 ---@class markdoc.config.markdown.tags
 ---
 ---@field default? string[]
 ---@field [string] string[]
+```
+
+Maps heading text to a list of `tags`.
+
+```lua
 markdown = {
     tags = {
         ["^textwidth$"]: { "markdoc.nvim-textwidth", "markdoc.nvim-generic.textwidth" },
     },
 }
 ```
-
-Maps heading text to a list of `tags`.
 

@@ -37,9 +37,10 @@ local function export_path (buffer, filename, use_relative_path)
 end
 
 --[[ Converts `buffer` into `vimdoc`. ]]
----@param buffer? integer
----@param use? integer
-markdoc.convert_buffer = function (buffer, use)
+---@param buffer? integer Buffer ID. Defaults to *current* buffer.
+---@param user_config? markdoc.config Custom configuration. Overrides the file specific configuration.
+---@param use? integer Buffer to dump the preview into. Has no effect if `generic.filename` is set.
+markdoc.convert_buffer = function (buffer, user_config, use)
 	---|fS
 
 	buffer = buffer or vim.api.nvim_get_current_buf();
@@ -68,11 +69,20 @@ markdoc.convert_buffer = function (buffer, use)
 		vim.api.nvim_buf_get_lines(buffer, 0, -1, false)
 	);
 
+	local config = require("markdoc.config");
 	require("markdoc.html").walk(new);
+
+	if user_config then
+		--[[
+			NOTE: The `html` converter sets the config from comments.
+
+			So, this needs to be run after that.
+		]]
+		config.active = vim.tbl_deep_extend("force", config.active, user_config);
+	end
+
 	require("markdoc.markdown_inline").walk(new);
 	require("markdoc.markdown").walk(new);
-
-	local config = require("markdoc.config");
 
 	if config.active.generic.filename then
 		local fname = config.active.generic.filename --[[@as string]];
@@ -101,9 +111,10 @@ markdoc.convert_buffer = function (buffer, use)
 end
 
 --[[ Converts **file** with `path` into `vimdoc`. ]]
----@param path string
----@param use? integer
-markdoc.convert_file = function (path, use)
+---@param path string Path to file.
+---@param user_config? markdoc.config Custom configuration. Overrides the file specific configuration.
+---@param use? integer Buffer to dump the preview into. Has no effect if `generic.filename` is set.
+markdoc.convert_file = function (path, user_config, use)
 	---|fS
 
 	---@type integer
@@ -128,11 +139,20 @@ markdoc.convert_file = function (path, use)
 		file
 	);
 
+	local config = require("markdoc.config");
 	require("markdoc.html").walk(new);
+
+	if user_config then
+		--[[
+			NOTE: The `html` converter sets the config from comments.
+
+			So, this needs to be run after that.
+		]]
+		config.active = vim.tbl_deep_extend("force", config.active, user_config);
+	end
+
 	require("markdoc.markdown_inline").walk(new);
 	require("markdoc.markdown").walk(new);
-
-	local config = require("markdoc.config");
 
 	if config.active.generic.filename then
 		local fname = config.active.generic.filename --[[@as string]];
