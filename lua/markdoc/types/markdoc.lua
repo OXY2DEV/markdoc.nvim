@@ -10,6 +10,7 @@
 ---@class markdoc.config.generic
 ---
 ---@field filename? string Name of help file.
+---@field relative_path? boolean Is the file oath relative to the `source` file? Gets set to `false`, if `filename` starts with `~`.
 ---@field force_write? boolean Should `:write!` be used instead of `:write`?
 ---@field winopts? table Window options for the previewer.
 ---

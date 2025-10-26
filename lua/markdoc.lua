@@ -9,6 +9,33 @@ require("markdoc").setup();
 ]]
 local markdoc = {};
 
+--- Gets export file path
+---@param buffer number | string
+---@param filename string
+---@param use_relative_path boolean
+---@return string
+local function export_path (buffer, filename, use_relative_path)
+	---|fS
+
+	local leader = "";
+
+	if type(buffer) == "number" then
+		vim.api.nvim_buf_call(buffer, function ()
+			leader = vim.fn.expand("%:h") .. "/";
+		end);
+	elseif type(buffer) == "string" then
+		if use_relative_path then
+			leader = vim.fn.fnamemodify(buffer, ":p:h") .. "/";
+		else
+			leader = "";
+		end
+	end
+
+	return leader .. filename;
+
+	---|fE
+end
+
 --[[ Converts `buffer` into `vimdoc`. ]]
 ---@param buffer? integer
 ---@param use? integer
@@ -48,15 +75,17 @@ markdoc.convert_buffer = function (buffer, use)
 	local config = require("markdoc.config");
 
 	if config.active.generic.filename then
-		local leader = "";
-		vim.api.nvim_buf_call(buffer, function ()
-			leader = vim.fn.expand("%:h") .. "/";
-		end);
+		local fname = config.active.generic.filename --[[@as string]];
+		local path = export_path(
+			buffer,
+			fname,
+			config.active.generic.relative_path or not string.match(fname, "^~")
+		);
 
 		vim.api.nvim_buf_call(new, function ()
 			vim.cmd(
 				(config.active.generic.force_write and "write! " or "write ") ..
-				leader .. config.active.generic.filename
+				path
 			);
 		end);
 	else
@@ -106,12 +135,17 @@ markdoc.convert_file = function (path, use)
 	local config = require("markdoc.config");
 
 	if config.active.generic.filename then
-		local leader = vim.fn.fnamemodify(path, ":p:h") .. "/";
+		local fname = config.active.generic.filename --[[@as string]];
+		local _path = export_path(
+			path,
+			fname,
+			config.active.generic.relative_path or not string.match(fname, "^~")
+		);
 
 		vim.api.nvim_buf_call(new, function ()
 			vim.cmd(
 				(config.active.generic.force_write and "write! " or "write ") ..
-				leader .. config.active.generic.filename
+				_path
 			);
 		end);
 	else
