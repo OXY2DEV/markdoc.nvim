@@ -906,6 +906,11 @@ markdown.header = function (buffer)
 		table.insert(lines, align(header.version --[[@as string]], textwidth, "right"))
 	end
 
+	local first = vim.api.nvim_buf_get_lines(buffer, 0, 1, false);
+
+	if string.match(lines[#lines], "%S") and string.match(first[1] or "", "%S") then
+		table.insert(lines, "");
+	end
 	vim.api.nvim_buf_set_lines(buffer, 0, 0, false, lines);
 
 	---|fE
@@ -915,10 +920,16 @@ end
 markdown.footer = function (buffer)
 	---|fS
 
-	vim.api.nvim_buf_set_lines(buffer, -1, -1, false, {
-		"",
+	local lines = {
 		string.format("vim:ft=vimdoc:textwidth=%d:tabstop=%d:noexpandtab:", config.active.generic.textwidth or 80, config.active.generic.indent or 4)
-	});
+	};
+	local last = vim.api.nvim_buf_get_lines(buffer, -1, -1, false);
+
+	if #last > 0 and last[1] ~= "" then
+		table.insert(lines, 1, "");
+	end
+
+	vim.api.nvim_buf_set_lines(buffer, -1, -1, false, lines);
 
 	---|fE
 end
@@ -935,8 +946,12 @@ markdown.links = function (buffer)
 	end
 
 	local lines = {};
+	local last = vim.api.nvim_buf_get_lines(buffer, -1, -1, false);
 
-	table.insert(lines, "");
+	if #last > 0 and last[1] ~= "" then
+		table.insert(lines, 1, "");
+	end
+
 	table.insert(lines, link_config.desc or "Links ~" );
 
 	for l, link in ipairs(links.urls[buffer] or {}) do
@@ -966,6 +981,12 @@ markdown.images = function (buffer)
 	end
 
 	local lines = {};
+	local last = vim.api.nvim_buf_get_lines(buffer, -1, -1, false);
+
+	if #last > 0 and last[1] ~= "" then
+		table.insert(lines, 1, "");
+	end
+
 
 	table.insert(lines, image_config.desc or "Images ~");
 
