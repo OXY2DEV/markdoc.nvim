@@ -100,7 +100,8 @@ end
 
 ---@param buffer integer
 ---@param TSNode TSNode
-markdown.atx_heading = function (buffer, _, TSNode)
+---@param second? boolean Is this the second call?
+markdown.atx_heading = function (buffer, _, TSNode, second)
 	---|fS
 
 	local _marker = TSNode:named_child(0) --[[ @as TSNode ]];
@@ -140,6 +141,20 @@ markdown.atx_heading = function (buffer, _, TSNode)
 		tag_w
 	);
 
+	if not second and #tags > #content then
+		--[[
+			BUG: Tag lines get incorrectly parsed.
+
+			If the number of lines used to show tags exceeds the number of lines used to show heading text then the lines get parsed as indented code blocks.
+
+			To avoid this we modify headings in *cycles*. The cycles are,
+
+			1. Primary cycle: It converts headings that won't trigger this issue.
+			2. Secondary cycle: It runs after the indented code blocks function and safely converts these special cases.
+		]]
+		return;
+	end
+
 	if #marker == 1 then
 		table.insert(heading, string.rep("=", MAX));
 		heading = vim.list_extend(heading, merge_cols({ width = text_w, alignment = "left", lines = content }, { width = tag_w, alignment = "right", lines = tags }))
@@ -158,6 +173,13 @@ markdown.atx_heading = function (buffer, _, TSNode)
 	vim.api.nvim_buf_set_text(buffer, R[1], 0, R[3], R[4], heading);
 
 	---|fE
+end
+
+--[[ Thin wrapper around the heading converter. ]]
+---@param buffer integer
+---@param TSNode TSNode
+markdown.atx_heading_2 = function (buffer, _, TSNode)
+	markdown.atx_heading(buffer, _, TSNode, true);
 end
 
 ---@param buffer integer
@@ -826,6 +848,7 @@ markdown.post_rule = {
 	{ "(fenced_code_block) @code_block", markdown.fenced_code_block },
 
 	{ '((paragraph) @paragraph (#lua-match? @paragraph "^::%w+::"))', markdown.paragraph_root },
+	{ "(atx_heading) @atx", markdown.atx_heading_2 }
 };
 
 
