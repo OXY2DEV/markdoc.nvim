@@ -146,11 +146,6 @@ markdown.atx_heading = function (buffer, _, TSNode)
 	elseif #marker == 2 then
 		table.insert(heading, string.rep("-", MAX));
 		heading = vim.list_extend(heading, merge_cols({ width = text_w, alignment = "left", lines = content }, { width = tag_w, alignment = "right", lines = tags }))
-	elseif #marker == 3 then
-		for l, line in ipairs(content) do
-			content[l] = string.upper(line):gsub("^[^A-Z0-9.%(%)]", ""):gsub("[^-A-Z0-9.%(%)_ \t]", ""):gsub("^%s+", "");
-		end
-		heading = vim.list_extend(heading, merge_cols({ width = text_w, alignment = "left", lines = content }, { width = tag_w, alignment = "right", lines = tags }))
 	else
 		return;
 	end
