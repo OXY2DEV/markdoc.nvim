@@ -227,7 +227,7 @@ end
 html.image = function (buffer, _, TSNode)
 	---|fS
 
-	if TSNode:type() ~= "element" then
+	if TSNode:type() ~= "element" or not TSNode:named_child(0) then
 		return;
 	end
 
@@ -236,8 +236,8 @@ html.image = function (buffer, _, TSNode)
 	local src = string.match(tag, 'src="([^"]+)"');
 	local alt = string.match(tag, 'alt="([^"]+)"');
 
-	local R = { TSNode:range() };
-	vim.api.nvim_buf_set_text(buffer, R[1], R[2], R[1], -1, {
+	local R = { TSNode:named_child(0):range() };
+	vim.api.nvim_buf_set_text(buffer, R[1], R[2], R[1], R[4], {
 		string.format("![%s]", alt or "Image") .. (src and string.format("(%s)", src) or "")
 	});
 
