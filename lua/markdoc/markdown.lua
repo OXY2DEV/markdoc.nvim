@@ -977,7 +977,7 @@ markdown.images = function (buffer)
 	local image_config = config.active.generic.images;
 	local links = require("markdoc.links");
 
-	if image_config.enabled == false or #(links.urls[buffer] or {}) == 0 then
+	if image_config.enabled == false or #(links.imagss[buffer] or {}) == 0 then
 		return;
 	end
 
@@ -991,7 +991,7 @@ markdown.images = function (buffer)
 	table.insert(lines, image_config.desc or "Images ~");
 	table.insert(lines, "");
 
-	for l, link in ipairs(links.urls[buffer] or {}) do
+	for l, link in ipairs(links.imagss[buffer] or {}) do
 		local _link = config.modify_url(buffer, tostring(l), link);
 
 		local index = string.format(image_config.list_marker or "%d:", l);
