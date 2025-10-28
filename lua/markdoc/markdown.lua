@@ -923,9 +923,10 @@ markdown.footer = function (buffer)
 	local lines = {
 		string.format("vim:ft=help:textwidth=%d:tabstop=%d:noexpandtab:", config.active.generic.textwidth or 80, config.active.generic.indent or 4)
 	};
-	local last = vim.api.nvim_buf_get_lines(buffer, -1, -1, false);
+	local L = vim.api.nvim_buf_line_count(buffer);
+	local last = vim.api.nvim_buf_get_lines(buffer, L -1, L, false);
 
-	if #last > 0 and last[1] ~= "" then
+	if #last == 0 or last[1] ~= "" then
 		table.insert(lines, 1, "");
 	end
 
@@ -946,9 +947,10 @@ markdown.links = function (buffer)
 	end
 
 	local lines = {};
-	local last = vim.api.nvim_buf_get_lines(buffer, -1, -1, false);
+	local L = vim.api.nvim_buf_line_count(buffer);
+	local last = vim.api.nvim_buf_get_lines(buffer, L -1, L, false);
 
-	if #last > 0 and last[1] ~= "" then
+	if #last == 0 or last[1] ~= "" then
 		table.insert(lines, 1, "");
 	end
 
@@ -982,9 +984,10 @@ markdown.images = function (buffer)
 	end
 
 	local lines = {};
-	local last = vim.api.nvim_buf_get_lines(buffer, -1, -1, false);
+	local L = vim.api.nvim_buf_line_count(buffer);
+	local last = vim.api.nvim_buf_get_lines(buffer, L -1, L, false);
 
-	if #last > 0 and last[1] ~= "" then
+	if #last == 0 or last[1] ~= "" then
 		table.insert(lines, 1, "");
 	end
 
@@ -1000,7 +1003,6 @@ markdown.images = function (buffer)
 		table.insert(lines, index .. url);
 	end
 
-	table.insert(lines, "");
 	vim.api.nvim_buf_set_lines(buffer, -1, -1, false, lines);
 
 	---|fE

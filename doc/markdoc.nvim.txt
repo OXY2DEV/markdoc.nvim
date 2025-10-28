@@ -1,6 +1,6 @@
 *markdoc.nvim*       Tree-sitter based `Markdown -> Vimdoc` converter for Neovim
 
-                                  Image {img:1}                                 
+                    Image {img:3} Image {img:2} Image {img:1}                   
 
 --------------------------------------------------------------------------------
 🪄 Features                                              *markdoc.nvim-features*
@@ -643,8 +643,11 @@ Maps heading text to a list of `tags`.
 	}
 <
 
+
 Images ~
 
-1: https://github.com/OXY2DEV/markdoc.nvim/releases
+1: https://github.com/OXY2DEV/markdoc.nvim/blob/images/images/markdoc.nvim-tables.png
+2: https://github.com/OXY2DEV/markdoc.nvim/blob/images/images/markdoc.nvim-2.png
+3: https://github.com/OXY2DEV/markdoc.nvim/blob/images/images/markdoc.nvim-3.png
 
 vim:ft=help:textwidth=80:tabstop=4:noexpandtab:
