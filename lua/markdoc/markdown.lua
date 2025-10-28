@@ -921,7 +921,7 @@ markdown.footer = function (buffer)
 	---|fS
 
 	local lines = {
-		string.format("vim:ft=vimdoc:textwidth=%d:tabstop=%d:noexpandtab:", config.active.generic.textwidth or 80, config.active.generic.indent or 4)
+		string.format("vim:ft=help:textwidth=%d:tabstop=%d:noexpandtab:", config.active.generic.textwidth or 80, config.active.generic.indent or 4)
 	};
 	local last = vim.api.nvim_buf_get_lines(buffer, -1, -1, false);
 
@@ -953,6 +953,7 @@ markdown.links = function (buffer)
 	end
 
 	table.insert(lines, link_config.desc or "Links ~" );
+	table.insert(lines, "");
 
 	for l, link in ipairs(links.urls[buffer] or {}) do
 		local _link = config.modify_url(buffer, tostring(l), link);
@@ -987,8 +988,8 @@ markdown.images = function (buffer)
 		table.insert(lines, 1, "");
 	end
 
-
 	table.insert(lines, image_config.desc or "Images ~");
+	table.insert(lines, "");
 
 	for l, link in ipairs(links.urls[buffer] or {}) do
 		local _link = config.modify_url(buffer, tostring(l), link);

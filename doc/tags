@@ -1,6 +1,7 @@
 current	markdoc.nvim.txt	/*current*
 markdoc.nvim	markdoc.nvim.txt	/*markdoc.nvim*
 markdoc.nvim-api	markdoc.nvim.txt	/*markdoc.nvim-api*
+markdoc.nvim-api.convert_buffer	markdoc.nvim.txt	/*markdoc.nvim-api.convert_buffer*
 markdoc.nvim-api.convert_file	markdoc.nvim.txt	/*markdoc.nvim-api.convert_file*
 markdoc.nvim-block_quotes	markdoc.nvim.txt	/*markdoc.nvim-block_quotes*
 markdoc.nvim-code_blocks	markdoc.nvim.txt	/*markdoc.nvim-code_blocks*
