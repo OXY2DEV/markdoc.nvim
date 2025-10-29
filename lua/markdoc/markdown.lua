@@ -942,7 +942,7 @@ markdown.links = function (buffer)
 	local link_config = config.active.generic.links;
 	local links = require("markdoc.links");
 
-	if link_config.enabled == false or #(links.urls[buffer] or {}) then
+	if link_config.enabled == false or #(links.urls[buffer] or {}) == 0 then
 		return;
 	end
 
