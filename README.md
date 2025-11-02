@@ -1,6 +1,7 @@
 <!--markdoc
     {
         "generic": {
+            "preserve_whitespaces": false,
             "filename": "doc/markdoc.nvim.txt",
             "force_write": true,
             "header": {
@@ -23,6 +24,7 @@
                 "Buffer conversion API$": [ "markdoc.nvim-api.convert_buffer" ],
 
                 "^generic$": [ "markdoc.nvim-generic" ],
+                "^preserve_whitespaces$": [ "markdoc.nvim-preserve_whitespaces", "markdoc.nvim-generic.preserve_whitespaces" ],
                 "^filename$": [ "markdoc.nvim-filename", "markdoc.nvim-generic.filename" ],
                 "^force_write$": [ "markdoc.nvim-force_write", "markdoc.nvim-generic.force_write" ],
                 "^winopts$": [ "markdoc.nvim-winopts", "markdoc.nvim-generic.winopts" ],
@@ -162,7 +164,6 @@ It can be called with multiple files/buffers.
 :Doc README.md test.md
 ```
 
-
 ## 📬 API functions
 
 There are 2 available API functions.
@@ -298,8 +299,11 @@ The following options are supported,
 
 Type: `markdoc.config.generic`
 
-```lua from: ./lua/markdoc/types/markdoc.lua class: markdoc.config.generic
+```lua $MDC: ./lua/markdoc/types/markdoc.lua, from: $MDC class: markdoc.config.generic
+-- Generic options for controlling help file generation.
 ---@class markdoc.config.generic
+---
+---@field preserve_whitespace? boolean Should whitespace be preserved?
 ---
 ---@field filename? string Name of help file.
 ---@field relative_path? boolean Is the file oath relative to the `source` file? Gets set to `false`, if `filename` starts with `~`.
@@ -316,6 +320,14 @@ Type: `markdoc.config.generic`
 ```
 
 Generic configuration options. These are,
+
+#### preserve_whitespace
+
+Type: `boolean`
+
+When `false`, Repeating empty lines will be collapsed into a single empty line.
+
+The default value is `false`.
 
 #### filename
 
@@ -374,7 +386,7 @@ Type: `markdoc.config.generic.header`
 
 Configuration for `file header`.
 
-```lua
+```lua from: $MDC class: markdoc.config.generic.header
 ---@class markdoc.config.generic.header
 ---
 ---@field enabled? boolean
@@ -393,7 +405,7 @@ Type: `markdoc.config.generic.links`
 
 Configuration for `link reference` section.
 
-```lua
+```lua from: $MDC class: markdoc.config.generic.links
 ---@class markdoc.config.generic.links
 ---
 ---@field enabled? boolean
@@ -415,7 +427,7 @@ Type: `markdoc.config.generic.toc`
 
 Configuration for `table of contents` section.
 
-```lua from: ./lua/markdoc/types/markdoc.lua class: markdoc.config.generic.toc
+```lua from: $MDC class: markdoc.config.generic.toc
 ---@class markdoc.config.generic.toc
 ---
 ---@field enabled? boolean
@@ -428,7 +440,7 @@ Configuration for `table of contents` section.
 
 Each entry in `entries` has the following structure.
 
-```lua from: ./lua/markdoc/types/markdoc.lua class: generic.toc.entry
+```lua from: $MDC class: markdoc.config.generic.toc.entry
 ---@class generic.toc.entry
 ---
 ---@field text string
@@ -439,7 +451,8 @@ Each entry in `entries` has the following structure.
 
 Markdown options.
 
-```lua from: ./lua/markdoc/types/markdown.lua class: markdoc.config.markdown
+```lua $MDN: ./lua/markdoc/types/markdown.lua, from: $MDN class: markdoc.config.markdown
+-- Configuration for `markdown`
 ---@class markdoc.config.markdown
 ---
 ---@field use_link_refs markdown.use_link_refs Should *references* be used instead of `URLs`
@@ -460,7 +473,7 @@ Markdown options.
 
 Type: `markdown.use_link_refs`
 
-```lua from: ./lua/markdoc/types/markdown.lua class: markdown.use_link_refs
+```lua from: $MDN alias: markdown.use_link_refs
 ---@alias markdown.use_link_refs
 ---| boolean
 ---| fun (description: string, destination: string): boolean
@@ -488,7 +501,7 @@ Text used for formatting the reference of a link. Default is `{%d}`.
 
 Type: `markdown.url_modifier.entry[]`
 
-```lua from: ./lua/markdoc/types/markdown.lua class: markdown.url_modifier.entry
+```lua from: $MDN class: markdown.url_modifier.entry
 ---@class markdown.url_modifier.entry
 ---
 ---@field [1] string `Lua-pattern` to match.
@@ -499,7 +512,7 @@ Modifies URLs. Useful for section links(e.g. `#link_url_modifiers`).
 
 Each entry has the following pattern.
 
-```lua from: ./lua/markdoc/types/markdown.lua class: markdown.url_modifier
+```lua from: $MDN class: markdown.url_modifier
 ---@alias markdown.url_modifier
 ---| string
 ---| fun (description: string, destination: string): string
@@ -518,7 +531,7 @@ Ratio of spaces taken by heading text & the tags. Default is `{ 6, 4 }`.
 
 Type: `markdoc.config.markdown.block_quotes`
 
-```lua from: ./lua/markdoc/types/markdown.lua class: markdoc.config.markdown.block_quotes
+```lua from: $MDN class: markdoc.config.markdown.block_quotes
 ---@class markdoc.config.markdown.block_quotes
 ---
 ---@field default markdown.block_quotes.opts
@@ -529,7 +542,7 @@ Configuration for `block quotes` & `callouts`.
 
 Each block quote type has the following options.
 
-```lua from: ./lua/markdoc/types/markdown.lua class: markdown.block_quotes.opts
+```lua from: $MDN class: markdoc.config.markdown.block_quotes.opts
 ---@class markdown.block_quotes.opts
 ---
 ---@field border? string
@@ -541,7 +554,7 @@ Each block quote type has the following options.
 
 Type: `markdoc.config.markdown.code_blocks`
 
-```lua from: ./lua/markdoc/types/markdown.lua class: markdoc.config.markdown.code_blocks
+```lua from: $MDN class: markdoc.config.markdown.code_blocks
 ---@class markdoc.config.markdown.code_blocks
 ---
 ---@field indentation? string Text used for indenting code block.
@@ -566,7 +579,7 @@ markdown = {
 
 Type: `markdoc.config.markdown.list_items`
 
-```lua from: ./lua/markdoc/types/markdown.lua class: markdoc.config.markdown.list_items
+```lua from: $MDN class: markdoc.config.markdown.list_items
 ---@class markdoc.config.markdown.list_items
 ---
 ---@field marker_plus? string Text used to replace `+` markers.
@@ -581,7 +594,7 @@ Type: `markdoc.config.markdown.list_items`
 
 Type: `markdoc.config.markdown.tables`
 
-```lua from: ./lua/markdoc/types/markdown.lua class: markdoc.config.markdown.tables
+```lua from: $MDN class: markdoc.config.markdown.tables
 ---@class markdoc.config.markdown.tables
 ---
 ---@field max_col_size? integer Maximum width of a table `column`.
@@ -594,7 +607,8 @@ Changes how table borders are shown.
 
 Tables have the following options for border drawing.
 
-```lua from: ./lua/markdoc/types/markdown.lua class: markdown.tables.border
+```lua from: $MDN class: markdown.tables.border
+-- Border elements for the table.
 ---@class markdown.tables.border
 ---
 ---@field top markdown.tables.border.decoration
@@ -609,7 +623,7 @@ Tables have the following options for border drawing.
 
 `top`, `bottom`, `separator` & `row_separator` have the following options.
 
-```lua from: ./lua/markdoc/types/markdown.lua class: markdown.tables.border.decoration
+```lua from: $MDN class: markdown.tables.border.decoration
 ---@class markdown.tables.border.decoration
 ---
 ---@field [1] string Left border
@@ -621,7 +635,7 @@ Tables have the following options for border drawing.
 
 `header` & `row` have the following options.
 
-```lua from: ./lua/markdoc/types/markdown.lua class: markdown.tables.border.row
+```lua from: $MDN class: markdown.tables.border.row
 ---@class markdown.tables.border.row
 ---
 ---@field [1] string Left border

@@ -9,6 +9,8 @@
 -- Generic options for controlling help file generation.
 ---@class markdoc.config.generic
 ---
+---@field preserve_whitespace? boolean Should whitespace be preserved?
+---
 ---@field filename? string Name of help file.
 ---@field relative_path? boolean Is the file oath relative to the `source` file? Gets set to `false`, if `filename` starts with `~`.
 ---@field force_write? boolean Should `:write!` be used instead of `:write`?

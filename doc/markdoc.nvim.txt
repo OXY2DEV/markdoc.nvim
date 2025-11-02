@@ -112,7 +112,6 @@ It can be called with multiple files/buffers.
 	:Doc README.md test.md
 <
 
-
 --------------------------------------------------------------------------------
 📬 API functions                                              *markdoc.nvim-api*
 
@@ -253,7 +252,10 @@ generic                                                   *markdoc.nvim-generic*
 Type: `markdoc.config.generic`
 
 >lua
+	-- Generic options for controlling help file generation.
 	---@class markdoc.config.generic
+	---
+	---@field preserve_whitespace? boolean Should whitespace be preserved?
 	---
 	---@field filename? string Name of help file.
 	---@field relative_path? boolean Is the file oath relative to the `source` file? Gets set to `false`, if `filename` starts with `~`.
@@ -403,6 +405,7 @@ markdown                                                 *markdoc.nvim-markdown*
 Markdown options.
 
 >lua
+	-- Configuration for `markdown`
 	---@class markdoc.config.markdown
 	---
 	---@field use_link_refs markdown.use_link_refs Should *references* be used instead of `URLs`
@@ -566,6 +569,7 @@ Changes how table borders are shown.
 Tables have the following options for border drawing.
 
 >lua
+	-- Border elements for the table.
 	---@class markdown.tables.border
 	---
 	---@field top markdown.tables.border.decoration
@@ -643,6 +647,9 @@ Maps heading text to a list of `tags`.
 	}
 <
 
+Links ~
+
+1: https://github.com/OXY2DEV/markdoc.nvim/releases
 
 Images ~
 

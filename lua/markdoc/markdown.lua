@@ -1058,6 +1058,26 @@ markdown.walk = function (buffer)
 	markdown.images(buffer);
 	markdown.footer(buffer);
 
+	if not config.active.generic.preserve_whitespace then
+		local lines = vim.api.nvim_buf_get_lines(buffer, 0, -1, false);
+		local cleaned = {};
+		local last_space = false;
+
+		for _, line in ipairs(lines) do
+			if string.match(line, "^%s*$") then
+				if last_space ~= true then
+					table.insert(cleaned, line);
+					last_space = true;
+				end
+			else
+				last_space = false;
+				table.insert(cleaned, line);
+			end
+		end
+
+		vim.api.nvim_buf_set_lines(buffer, 0, -1, false, cleaned);
+	end
+
 	vim.bo[buffer].ft = "vimdoc";
 
 	---|fE

@@ -3,6 +3,8 @@ local config = {};
 ---@type markdoc.config
 config.default = {
 	generic = {
+		preserve_whitespace = false,
+
 		textwidth = 80,
 		indent = 4,
 
