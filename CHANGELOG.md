@@ -1,5 +1,40 @@
 # Changelog
 
+## [1.1.0](https://github.com/OXY2DEV/markdoc.nvim/compare/v1.0.0...v1.1.0) (2025-11-02)
+
+
+### Features
+
+* Added API functions ([d045c49](https://github.com/OXY2DEV/markdoc.nvim/commit/d045c490a4a7cd7ff6d884169e148b12a252dcb6)), closes [#6](https://github.com/OXY2DEV/markdoc.nvim/issues/6)
+* Added option to preserve whitespaces ([0aaabb7](https://github.com/OXY2DEV/markdoc.nvim/commit/0aaabb71f1088bddf201b8f1aaec308e4e8acd6d))
+* Calling `setup()` is no longer required ([fb3bb01](https://github.com/OXY2DEV/markdoc.nvim/commit/fb3bb0156a07fb19feb13d9ec2639aeafd368a39)), closes [#5](https://github.com/OXY2DEV/markdoc.nvim/issues/5)
+* **html:** Added `<code></code>` support ([19a339b](https://github.com/OXY2DEV/markdoc.nvim/commit/19a339bbab657fe77cad3e7868faca7150e93ee1))
+* **markdown_inline:** Added `~strikethrough~` support ([ff51a9f](https://github.com/OXY2DEV/markdoc.nvim/commit/ff51a9fd7ae1a68c195653d9596f001daaa01b50))
+* **markdown:** Added `setext_heading` support ([72bcca3](https://github.com/OXY2DEV/markdoc.nvim/commit/72bcca37b1806da0955c980473c17286efa320e5))
+* **markdown:** Added horizontal rule support ([fbc82b5](https://github.com/OXY2DEV/markdoc.nvim/commit/fbc82b578d23d1b2799bc2a214c0401225d0b752))
+* **markdown:** Allow link modofication on link/image section ([febdc0b](https://github.com/OXY2DEV/markdoc.nvim/commit/febdc0bd00f37056d72b8510484409f5c0403661))
+
+
+### Bug Fixes
+
+* Empty whitespaces are now added conditionally for footers ([d585a2a](https://github.com/OXY2DEV/markdoc.nvim/commit/d585a2a6e900f5534f225fe8b4b5001d631d584d))
+* Filename is now *relative* to the source file ([df723c1](https://github.com/OXY2DEV/markdoc.nvim/commit/df723c10733c6bc060e153818e447e502234b4e8))
+* Fixed a bug with incorreft filetype ([5c9b60f](https://github.com/OXY2DEV/markdoc.nvim/commit/5c9b60f6f942432f0c9ac82ad4312269a586f00a))
+* Fixed whitespace logic ([3a8a760](https://github.com/OXY2DEV/markdoc.nvim/commit/3a8a7609bb295f1282b35b0dfc6c740aabb4983d))
+* **format:** Remove trailing empty lines from output ([0c02140](https://github.com/OXY2DEV/markdoc.nvim/commit/0c02140773e71d06edeb33b46975dc1019c403ec))
+* **html:** `ignore` now works correctly with multiple regions ([6fca043](https://github.com/OXY2DEV/markdoc.nvim/commit/6fca043f6eee5212b86633f4905060caaeac57e1))
+* **html:** Added filter to ignore match captures ([8eb95fa](https://github.com/OXY2DEV/markdoc.nvim/commit/8eb95fa0ca34849a6b1fe0e1791f8c282fd764f7))
+* **html:** Updated how links are transformed from HTML ([4c24659](https://github.com/OXY2DEV/markdoc.nvim/commit/4c246598595bd648006e1087bf0d4e318f9b39d4))
+* Injections are no longer transformed ([45aab81](https://github.com/OXY2DEV/markdoc.nvim/commit/45aab81267227d1ffa31be6fb49f0b42b52d5473))
+* **markdown_inline:** `code spans` in tables no longer break rendering ([2e69c5e](https://github.com/OXY2DEV/markdoc.nvim/commit/2e69c5e52fdd3a66865f42fc8895ffab376a0f02)), closes [#4](https://github.com/OXY2DEV/markdoc.nvim/issues/4)
+* **markdown:** Fixed a bug with image section not rendering ([1ac49eb](https://github.com/OXY2DEV/markdoc.nvim/commit/1ac49eb3c6d4be2af6ac8c6289fc1956b03bb2cc))
+* **markdown:** Fixed an issue with headings getting turned into code blocks ([79d32ac](https://github.com/OXY2DEV/markdoc.nvim/commit/79d32acb83af7bfac8b7a959f5cb83cf2e54259b))
+* **markdown:** Fixed incorrect transform range for code blocks ([c58207e](https://github.com/OXY2DEV/markdoc.nvim/commit/c58207ef3eba18818cec543de5fd3cccc43f8790))
+* **markdown:** Fixed links not showing up at bottom ([c721e40](https://github.com/OXY2DEV/markdoc.nvim/commit/c721e406506e627a1835b503787b3deb28f02ce1))
+* **markdown:** Formatter now doesn't strip empty lines ([2ccb252](https://github.com/OXY2DEV/markdoc.nvim/commit/2ccb2523c8283cdd9989b0d09b3b44ba10216486))
+* **markdown:** Horizontal rulss no longer break headings ([f36a7b8](https://github.com/OXY2DEV/markdoc.nvim/commit/f36a7b88aa2b4af7e3884820bc809712cd3822b0))
+* **markdown:** Newlines in setext headings are now treated as space ([4ba78ef](https://github.com/OXY2DEV/markdoc.nvim/commit/4ba78efc35da9b103ab962402e7bec4b5018da92))
+
 ## 1.0.0 (2025-10-18)
 
 
