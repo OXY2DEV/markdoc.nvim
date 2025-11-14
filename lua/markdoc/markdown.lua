@@ -676,7 +676,17 @@ markdown.table = function (buffer, _, TSNode)
 				table.insert(this_line, col[r] or "");
 			end
 
-			table.insert(lines, border(kind, unpack(this_line)));
+			local txt = border(kind, unpack(this_line));
+
+			if txt then
+				-- TODO: Find a better way to combat conceals.
+
+				txt = string.gsub(txt, "`.-`", function (code)
+					return " " .. code .. " ";
+				end);
+
+				table.insert(lines, txt);
+			end
 		end
 
 		---|fE
