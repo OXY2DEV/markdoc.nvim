@@ -23,7 +23,7 @@ format.parse = function (input)
 	local function as_arg   (m) return { kind = "argument", value = m }; end
 	local function as_key   (m) return { kind = "keycode", value = m }; end
 	local function as_url   (m) return { kind = "url", value = m }; end
-	local function as_word  (m) return { kind = "word", value = m }; end
+	local function as_char  (m) return { kind = "char", value = m }; end
 	local function as_space (m) return { kind = "space", value = m }; end
 
 	-- Tag: `*...*`
@@ -51,17 +51,46 @@ format.parse = function (input)
 	-- URL: `https:..`, `http:..`
 	local url = lpeg.C( lpeg.P("http") * ( lpeg.P("s")^-1 ) * ( lpeg.P(1) - lpeg.S(" \t") )^1 ) / as_url;
 
-	-- Word: ...
-	local word = lpeg.C( ( lpeg.P(1) - lpeg.S(" \t") )^1 ) / as_word;
+	-- Character: ...
+	local char = lpeg.C( lpeg.P(1) - lpeg.S(" \t") ) / as_char;
 	-- Space: ...
 	local space = lpeg.C( lpeg.S(" \t")^1 ) / as_space;
 
-	local part = tag + code_span + option_link + tag_link + argument + keycode + url + word + space;
+	local part = tag + code_span + option_link + tag_link + argument + keycode + url + char + space;
 	local line = lpeg.Ct(part^0);
 
 	---|fE
 
-	return lpeg.match(line, input);
+	local output = {};
+
+	for _, item in ipairs(lpeg.match(line, input)) do
+		if item.kind == "char" then
+			--[[
+				FIX: Parse character sequence correctly.
+
+				Old implementation used to use `^1` for matching character sequences.
+				This would break on texts such as '`foo`/`bar`' as it would parse them as,
+					1. `foo`
+					2. /`bar`
+
+				Instead, parse each character as individually and convert valid sequence into words.
+
+				Ref: #8
+			]]
+			if #output == 0 or output[#output].kind ~= "word" then
+				table.insert(output, {
+					kind = "word",
+					value = item.value
+				});
+			else
+				output[#output].value = output[#output].value .. item.value;
+			end
+		else
+			table.insert(output, item);
+		end
+	end
+
+	return output;
 end
 
 --[[ Simple *syntax-aware* hard text wrapping. ]]
