@@ -549,16 +549,16 @@ markdown.table = function (buffer, _, TSNode)
 		---|fS
 
 		---@type markdown.tables.border
-		local borders = vim.tbl_extend("keep", config.active.markdown.tables.borders or {}, {
+		local borders = vim.tbl_extend("force", {
 			separator = { "", "", "", "" },
-			row_seperator = {},
+			row_separator = {},
 
 			header = { "|", "", "|" },
 			row = { "", "", ""},
 
 			top = { "/", "-", "}", "|" },
 			bottom = { "{", "-", "//", "|" },
-		});
+		}, config.active.markdown.tables.borders or {});
 
 		local cols = { ... };
 		local this_border = borders[kind] or { "", "", "", "" };
@@ -574,6 +574,9 @@ markdown.table = function (buffer, _, TSNode)
 
 			if cols[c] then
 				output = output .. " " .. align(cols[c], col_widths[c] - 2, align_k) .. " ";
+			elseif kind == "header" or kind == "row" then
+				--NOTE:  Empty columns should be filled with " "(spaces).
+				output = output .. string.rep(" ", col_widths[c]);
 			else
 				output = output .. string.rep(this_border[2] or "", col_widths[c]);
 			end
@@ -695,7 +698,7 @@ markdown.table = function (buffer, _, TSNode)
 			new_row("row", row);
 
 			if r < #data.rows then
-				table.insert(lines, border("row_seperator"));
+				table.insert(lines, border("row_separator"));
 			end
 		end
 

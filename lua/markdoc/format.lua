@@ -59,8 +59,6 @@ format.parse = function (input)
 	local part = tag + code_span + option_link + tag_link + argument + keycode + url + char + space;
 	local line = lpeg.Ct(part^0);
 
-	---|fE
-
 	local output = {};
 
 	for _, item in ipairs(lpeg.match(line, input)) do
@@ -91,6 +89,8 @@ format.parse = function (input)
 	end
 
 	return output;
+
+	---|fE
 end
 
 --[[ Simple *syntax-aware* hard text wrapping. ]]
