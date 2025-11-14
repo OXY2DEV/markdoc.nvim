@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.1.1](https://github.com/OXY2DEV/markdoc.nvim/compare/v1.1.0...v1.1.1) (2025-11-14)
+
+
+### Bug Fixes
+
+* **format:** Fixed parsing issues with character sequences ([3bf0367](https://github.com/OXY2DEV/markdoc.nvim/commit/3bf036773fec6c9d22bb2bb8b074d6ebdc3d616e)), closes [#8](https://github.com/OXY2DEV/markdoc.nvim/issues/8)
+* **markdown, table:** Fixed an issue causing row separators to not show up ([e2e64bf](https://github.com/OXY2DEV/markdoc.nvim/commit/e2e64bf562366fc39cc8c55c4e68488a2ded24c7))
+* **markdown, table:** Handle conceal from code spans in tables ([12607a1](https://github.com/OXY2DEV/markdoc.nvim/commit/12607a127ba7c3890c3ab6e7b2a60f65b6d6d3ec)), closes [#8](https://github.com/OXY2DEV/markdoc.nvim/issues/8)
+
 ## [1.1.0](https://github.com/OXY2DEV/markdoc.nvim/compare/v1.0.0...v1.1.0) (2025-11-02)
 
 
