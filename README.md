@@ -81,7 +81,7 @@ And much more!
 
 - `tree-sitter-markdown`.
 - `tree-sitter-markdown_inline`.
-- `tree-sitter-html`(for inline `HTML`).
+- `tree-sitter-html`(for inline `HTML` & **comments** in markdown).
 
 >[!IMPORTANT]
 > By default, `callouts` use `nerd font` characters. You can change this in the config to use normal text instead.
